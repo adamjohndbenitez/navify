@@ -1,0 +1,18 @@
+Package: Navify
+Type: Package
+Title: Route Recommender
+Version: 0.1.0
+Author: Benitez, Adam John
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: A Web Application for Route Recommendation System using Artificial
+    Neural Network in R.
+Depends:
+    R (>= 3.2.5)
+License: MIT
+LazyData: TRUE
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+RoxygenNote: 5.0.1
+VignetteBuilder: knitr
