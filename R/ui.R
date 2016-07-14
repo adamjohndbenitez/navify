@@ -20,8 +20,21 @@ shinyUI(fluidPage(
 
       # Select destination
       selectInput(inputId = "destinationId", label = "Select Destination",
-                  choices = streets$name)
+                  choices = streets$name),
+
+      sidebarMenu(
+        # Menu Bar for data factors
+        menuItem("DataFactors", tabName = "dataFactors", icon = icon("road"))
+      )
     ),
-    dashboardBody()
+    dashboardBody(
+      tabItems(
+        tabItem(tabName = "dataFactors",
+          fluidRow(
+            h2("WIP")
+          )
+        )
+      )
+    )
   )
 ))
