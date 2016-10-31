@@ -2,7 +2,8 @@ Package: Navify
 Type: Package
 Title: Route Recommender
 Version: 0.1.0
-Author: Benitez, Adam John
+Authors@R: person("Adam John", "Benitez", email = "adamjohndbenitez72891@gmail.com",
+  role = c("aut", "cre"))
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: A Web Application for Route Recommendation System using Artificial
     Neural Network in R.
@@ -16,3 +17,10 @@ Suggests:
     rmarkdown
 RoxygenNote: 5.0.1
 VignetteBuilder: knitr
+Imports:
+    leaflet,
+    shiny,
+    shinyBS,
+    shinydashboard,
+    RMySQL,
+    DBI
