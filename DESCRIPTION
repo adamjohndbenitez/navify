@@ -23,4 +23,5 @@ Imports:
     shinyBS,
     shinydashboard,
     RMySQL,
-    DBI
+    DBI,
+    magrittr
