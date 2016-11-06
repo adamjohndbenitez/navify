@@ -36,7 +36,9 @@ shiny::shinyUI(shiny::fluidPage(
         # Google Maps
         shinydashboard::menuItem("Google Map", tabName = "googleMap", icon = shiny::icon("map")),
         # Google Maps
-        shinydashboard::menuItem("Leaflet Map", tabName = "leafletMap", icon = shiny::icon("map"))
+        shinydashboard::menuItem("Leaflet Map", tabName = "leafletMap", icon = shiny::icon("map")),
+        # Using jsonlite
+        shinydashboard::menuItem("Using Jsonlite", tabName = "jsonlitePackage")
       )
     ),
     shinydashboard::dashboardBody(shinydashboard::tabItems(
@@ -99,6 +101,10 @@ shiny::shinyUI(shiny::fluidPage(
           shiny::tags$p(),
           shiny::actionButton("recalc", "New points")
         )
+      ),
+      shinydashboard::tabItem(
+        tabName = "jsonlitePackage",
+        shiny::actionButton("incidents", "IncidentReports")
       )
     ))
   )

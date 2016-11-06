@@ -87,6 +87,13 @@ shiny::shinyServer(function(input, output, session) {
     loadDataFactors(input$routeId)
   })
 
+  observeEvent(input$incidents, {
+    dataObject <- jsonlite::fromJSON("http://dev.virtualearth.net/REST/v1/Traffic/Incidents/45.219,-122.325,47.610,-122.107?key=AnpFWQs6cZEkl2G9VXn5WKKb-_FqEKF_nCe3G4C_6tRsxJ9BH1Dd0XL_hmTGU7Ro")
+    dataJson <- jsonlite::toJSON(dataObject, pretty = TRUE)
+    print(dataObject$resourceSet$resources[[1]])
+    print(dataJson)
+  })
+
   output$locationDestinationData <- renderText({
     paste(
       loadDataRoute(input$routeId)$location,
@@ -535,14 +542,4 @@ loadDataFactors <- function(id) {
   data <- DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
   data
-}
-
-#' function kill all open connections at once
-#'
-killDbConnections <- function () {
-  all_cons <- RMySQL::dbListConnections(RMySQL::MySQL())
-  print(all_cons)
-  for (con in all_cons)
-    +  RMySQL::dbDisconnect(con)
-  print(paste(length(all_cons), " connections killed."))
 }
