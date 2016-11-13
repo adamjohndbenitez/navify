@@ -1,15 +1,3 @@
-setwd('C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\')
-old <- setwd(tempdir())
-on.exit(setwd(old), add = TRUE)
-
-streets <-
-  read.csv(
-    file = "C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\street.csv",
-    header = TRUE,
-    sep = ",",
-    stringsAsFactors = FALSE
-  )
-
 shiny::shinyUI(shiny::fluidPage(
   shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Navify"),
@@ -18,14 +6,14 @@ shiny::shinyUI(shiny::fluidPage(
       shiny::selectInput(
         inputId = "locationSearchId",
         label = "Select Location",
-        choices = streets$name
+        choices = streetsData()$name
       ),
 
       # Select destination
       shiny::selectInput(
         inputId = "destinationSearchId",
         label = "Select Destination",
-        choices = streets$name
+        choices = streetsData()$name
       ),
 
       shinydashboard::sidebarMenu(
