@@ -103,6 +103,12 @@ shiny::shinyServer(function(input, output, session) {
 
   observeEvent(input$createFactors, {
     shiny::callModule(module = createFactorsModal, id = "createFactorsModal")
+    shiny::observe({
+      modal_routeId <- input$routeId
+      # Change the value
+      updateNumericInput(session = session, inputId = "route_id", value = modal_routeId)
+
+    })
   })
 })
 

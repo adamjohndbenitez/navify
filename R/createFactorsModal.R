@@ -1,11 +1,5 @@
 createFactorsModal <- function(input, output, session) {
     # get the value of the routeId from selected routId to modal create factors
-    observe({
-      modal_routeId <- input$routeId
-      # Change the value
-      updateNumericInput(session, "route_id", value = modal_routeId)
-
-    })
     showModal(modalDialog(
       title = "Create Factors",
       footer = tagList(
@@ -169,9 +163,8 @@ createFactorsModal <- function(input, output, session) {
           ),
           shiny::column(
             width = 3,
-            shiny::numericInput(
-              "route_id",
-              "Route Id:",
+            shiny::numericInput(inputId = "route_id",
+              label = "Route Id:",
               min = 1,
               max = 20,
               value = 15
