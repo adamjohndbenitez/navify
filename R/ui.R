@@ -2,21 +2,9 @@ shiny::shinyUI(shiny::fluidPage(
   shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Navify"),
     shinydashboard::dashboardSidebar(
-      # Select location
-      shiny::selectInput(
-        inputId = "locationSearchId",
-        label = "Select Location",
-        choices = streetsData()$name
-      ),
-
-      # Select destination
-      shiny::selectInput(
-        inputId = "destinationSearchId",
-        label = "Select Destination",
-        choices = streetsData()$name
-      ),
-
       shinydashboard::sidebarMenu(
+        # Leaflet
+        shinydashboard::menuItem("DFS", tabName = "dfs", icon = shiny::icon("map")),
         # Menu Bar for data factors
         shinydashboard::menuItem("Traffic Data Management", tabName = "dataFactors", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome")),
         # Samplw Menu Bar for mysql
@@ -30,6 +18,38 @@ shiny::shinyUI(shiny::fluidPage(
       )
     ),
     shinydashboard::dashboardBody(shinydashboard::tabItems(
+      shinydashboard::tabItem(
+        tabName = "dfs",
+        shiny::fluidRow(
+          shinydashboard::box(title = "Select location & destination", status = "primary", solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
+                              shiny::column(width = 12,
+                                            shiny::column(width = 6,
+                                            # Select location
+                                            shiny::selectInput(
+                                              inputId = "locationSearchId",
+                                              label = "Select Location",
+                                              choices = streetsData()$name
+                                            )),
+
+                                            shiny::column(width = 6,
+                                            # Select destination
+                                            shiny::selectInput(
+                                              inputId = "destinationSearchId",
+                                              label = "Select Destination",
+                                              choices = streetsData()$name
+                                            ))
+                                            )
+                              )
+        ),
+        shiny::fluidRow(
+          shinydashboard::box(width = 12,
+            leaflet::leafletOutput(outputId = "DFSmap", width = "100%", height = "400px")
+          )
+        ),
+        shiny::fluidRow(
+          shinydashboard::box(width = 12, p("datatables for possible path"))
+          )
+      ),
       shinydashboard::tabItem(
         tabName = "dataFactors",
         shiny::fluidRow(

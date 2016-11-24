@@ -110,6 +110,15 @@ shiny::shinyServer(function(input, output, session) {
 
     })
   })
+
+  output$DFSmap <- leaflet::renderLeaflet({
+    leaflet::leaflet() %>%
+      leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
+      leaflet::addMarkers(lng=123.847311, lat=10.271590, popup="CSR") %>%
+      leaflet::addMarkers(lng=123.870742, lat=10.289747, popup="F.Llamas_CSR") %>%
+      # leaflet::addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R") %>%
+      leaflet::addPolylines(lng=c(123.847311, 123.870742), lat=c(10.271590, 10.289747), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+  })
 })
 
 loadDataRouteId <- function() {
