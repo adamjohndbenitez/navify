@@ -2,17 +2,17 @@
 #' devtools::test(pkg =
 #' "CIT-U/Masters of Computer Science/Capstone - Thesis/Navify - Traffixer/Navify/tests/testthat")
 #'
-context("DB connection")
+testthat::context("DB connection")
 
-test_that("Test DB Disconnection", {
+testthat::test_that("Test DB Disconnection", {
   db <-
-    dbConnect(
-      MySQL(),
+    RMySQL::dbConnect(
+      RMySQL::MySQL(),
       dbname = databaseNavify,
       host = options()$mysql$host,
       port = options()$mysql$port,
       user = options()$mysql$user,
       password = options()$mysql$password
     )
-  expect_true(dbDisconnect(db), TRUE)
+  testthat::expect_true(object = RMySQL::dbDisconnect(db), info = "create database to make test successful.")
 })

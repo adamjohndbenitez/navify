@@ -7,7 +7,10 @@
 loadDataFactors(id)
 }
 \arguments{
-\item{...}{loadDataFactors(id)}
+\item{id}{route id from saving factors.
+loadDataFactors(id)}
+
+\item{tableFactors}{table name for factors.}
 }
 \description{
 Load function that stores factors for route in database.

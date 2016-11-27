@@ -1,14 +1,17 @@
 require(magrittr)
 
-streetsData <- function(){
-  streets <- read.csv(
-    file = "C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\street.csv",
-    header = TRUE,
-    sep = ",",
-    stringsAsFactors = FALSE
-  )
-  streets
-}
+workspace <- 'C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\'
+setwd(workspace)
+
+# streetsData <- function() {
+#   streets <- read.csv(
+#     file = "street.csv",
+#     header = TRUE,
+#     sep = ",",
+#     stringsAsFactors = FALSE
+#   )
+#   streets
+# }
 
 # Define the fields we want to save from the form
 fields <- c("name", "r_num_years")
@@ -26,8 +29,8 @@ fieldsFactors <-
     "weather",
     "distance"
   )
-workspace <- 'C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\'
-setwd(workspace)
+
+databaseNavify <- "navifactors"
 
 options(mysql = list(
   "host" = "127.0.0.1",

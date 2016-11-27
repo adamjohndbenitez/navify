@@ -1,7 +1,7 @@
 base::source("R/databaseConnection.R")
 #' Save function that simply stores responses in MySQL.
 #'
-#' @param data
+#' @param data inputs from user.
 #' @examples
 #' saveData(data)
 #' @export

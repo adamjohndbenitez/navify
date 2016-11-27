@@ -4,17 +4,13 @@ shiny::shinyUI(shiny::fluidPage(
     shinydashboard::dashboardSidebar(
       shinydashboard::sidebarMenu(
         # Leaflet
-        shinydashboard::menuItem("DFS", tabName = "dfs", icon = shiny::icon("map")),
+        shinydashboard::menuItem("DFS", tabName = "dfs", icon = shiny::icon(name = "map", class = "fa-1x", lib = "font-awesome")),
         # Menu Bar for data factors
         shinydashboard::menuItem("Traffic Data Management", tabName = "dataFactors", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome")),
-        # Samplw Menu Bar for mysql
-        shinydashboard::menuItem("MySQLExample", tabName = "mySQLExample", icon = shiny::icon("stop")),
         # Google Maps
-        shinydashboard::menuItem("Google Map", tabName = "googleMap", icon = shiny::icon("map")),
-        # Google Maps
-        shinydashboard::menuItem("Leaflet Map", tabName = "leafletMap", icon = shiny::icon("map")),
+        shinydashboard::menuItem("Leaflet Map", tabName = "leafletMap", icon = shiny::icon(name = "map", class = "fa-1x", lib = "font-awesome")),
         # Using jsonlite
-        shinydashboard::menuItem("Using Jsonlite", tabName = "jsonlitePackage")
+        shinydashboard::menuItem("Using Jsonlite", tabName = "jsonlitePackage", icon = shiny::icon(name = "table", class = "fa-1x", lib = "font-awesome"))
       )
     ),
     shinydashboard::dashboardBody(shinydashboard::tabItems(
@@ -28,7 +24,7 @@ shiny::shinyUI(shiny::fluidPage(
                                             shiny::selectInput(
                                               inputId = "locationSearchId",
                                               label = "Select Location",
-                                              choices = streetsData()$name
+                                              ""
                                             )),
 
                                             shiny::column(width = 6,
@@ -36,7 +32,7 @@ shiny::shinyUI(shiny::fluidPage(
                                             shiny::selectInput(
                                               inputId = "destinationSearchId",
                                               label = "Select Destination",
-                                              choices = streetsData()$name
+                                              ""
                                             ))
                                             )
                               )
@@ -79,28 +75,6 @@ shiny::shinyUI(shiny::fluidPage(
             title = "Data Factors", status = "warning", width = 11,
           shiny::column(width = 12, DT::dataTableOutput("factors", width = 300))
         ))
-      ),
-      shinydashboard::tabItem(
-        tabName = "mySQLExample",
-        shiny::sidebarPanel(
-          # Inputs excluded for brevity
-          shiny::fluidRow(
-            DT::dataTableOutput("responses", width = "100%", height = "auto"),
-            shiny::tags$hr(),
-            shiny::textInput("name", "Name", ""),
-            #checkboxInput("used_shiny", "I've built a Shiny app in R before", FALSE),
-            shiny::sliderInput("r_num_years", "Number of years using R", 0, 25, 2, ticks = FALSE),
-            shiny::actionButton("submit", "Submit")
-          )
-        ),
-        shiny::mainPanel(
-        )
-      ),
-      shinydashboard::tabItem(
-        tabName = "googleMap",
-        shiny::fluidRow(
-            shiny::plotOutput("googleMapId", width = 700, height = 700)
-        )
       ),
       shinydashboard::tabItem(
         tabName = "leafletMap",

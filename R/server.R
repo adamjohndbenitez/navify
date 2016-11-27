@@ -5,18 +5,18 @@ shiny::shinyServer(function(input, output, session) {
   base::source("R/createRouteModal.R")
   base::source("R/createFactorsModal.R")
 
-  # Show data from loadData to selectInput
   observe({
+    # Show data from loadData to selectInput
     updateSelectInput(session,
                       "routeId",
                       choices = loadDataRouteId()$route_id)
-  })
-
-  # Whenever a field is filled, aggregate all form data
-  formData <- reactive({
-    data <- sapply(fields, function(x)
-      input[[x]])
-    data
+    # Show data from loadData selecting street table to selectInput
+    updateSelectInput(session,
+                      "locationSearchId",
+                      choices = loadDataStreets()$street_name)
+    updateSelectInput(session,
+                      "destinationSearchId",
+                      choices = loadDataStreets()$street_name)
   })
 
   formDataRoute <- reactive({
@@ -31,13 +31,8 @@ shiny::shinyServer(function(input, output, session) {
     data
   })
 
-  # When the Submit button is clicked, save the form data
-  observeEvent(input$submit, {
-    shiny::callModule(module = saveData, id = "saveData", formData(), "responses")
-  })
-
   observeEvent(input$saveRoute, {
-    shiny::callModule(module = saveData, id = "saveData", formDataRoute(), "route")
+    shiny::callModule(module = saveData, id = "saveData", formDataRoute(), "routes")
     removeModal(session = getDefaultReactiveDomain())
     updateSelectInput(session,
                       "routeId",
@@ -51,15 +46,6 @@ shiny::shinyServer(function(input, output, session) {
     output$factors <- DT::renderDataTable({
       loadDataFactors(input$routeId)
     })
-  })
-
-  # Show the previous responses
-  # (update with current response when Submit is clicked)
-  output$responses <- DT::renderDataTable({
-    input$submit
-    loadData()
-    tableRoute <- "route"
-    shiny::callModule(module = loadData, id = "loadData", tableRoute)
   })
 
   # Show the previous responses
@@ -82,11 +68,6 @@ shiny::shinyServer(function(input, output, session) {
     )
   })
 
-  output$googleMapId = renderPlot({
-    map <- ggmap::get_map(location = "philippines", zoom = 7, maptype = "terrain")
-    plot(map)
-  })
-
   points <- eventReactive(input$recalc, {
     cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
   }, ignoreNULL = FALSE)
@@ -98,7 +79,7 @@ shiny::shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$createRoute, {
-    shiny::callModule(module = createRouteModal, id = "createRouteModal", streetsData)
+    shiny::callModule(module = createRouteModal, id = "createRouteModal", loadDataStreets)
   })
 
   observeEvent(input$createFactors, {
@@ -122,7 +103,7 @@ shiny::shinyServer(function(input, output, session) {
 })
 
 loadDataRouteId <- function() {
-  tableRoute <- "route"
+  tableRoute <- "routes"
   data <- shiny::callModule(module = loadData, id = "loadData", tableRoute)
 }
 
@@ -131,16 +112,26 @@ loadDataRouteId <- function() {
 #'
 #' @export
 loadDataRoute <- function(id) {
-  tableRoute <- "route"
+  tableRoute <- "routes"
   data <- shiny::callModule(module = loadDataById, id = "loadDataById", id, tableRoute)
 }
 
 #' Load function that stores factors for route in database.
 #'
-#' @param time
-#' @param ...
+#' @param tableFactors table name for factors.
+#' @param id route id from saving factors.
 #' loadDataFactors(id)
 loadDataFactors <- function(id) {
   tableFactors <- "factors"
   data <- shiny::callModule(module = loadDataById, id = "loadDataById", id, tableFactors)
+}
+
+#' Retrieve function that simply load streets from MySQL.
+#'
+#' @export
+# load data from streets
+loadDataStreets <- function() {
+  tableStreets <- "streets"
+  data <- shiny::callModule(module = loadData, id = "loadData", tableStreets)
+  data
 }
