@@ -2,6 +2,7 @@ shiny::shinyServer(function(input, output, session) {
   base::source("R/saveData.R")
   base::source("R/loadData.R")
   base::source("R/loadDataById.R")
+  base::source("R/loadDataWhereCond.R")
   base::source("R/createRouteModal.R")
   base::source("R/createFactorsModal.R")
 
@@ -9,14 +10,18 @@ shiny::shinyServer(function(input, output, session) {
     # Show data from loadData to selectInput
     updateSelectInput(session,
                       "routeId",
-                      choices = loadDataRouteId()$route_id)
+                      choices = loadDataRoute()$route_id)
+  })
+  observe({
     # Show data from loadData selecting street table to selectInput
     updateSelectInput(session,
                       "locationSearchId",
                       choices = loadDataStreets()$street_name)
-    updateSelectInput(session,
-                      "destinationSearchId",
-                      choices = loadDataStreets()$street_name)
+  })
+  observe({
+  updateSelectInput(session,
+                    "destinationSearchId",
+                    choices = loadDataStreets()$street_name)
   })
 
   formDataRoute <- reactive({
@@ -36,7 +41,7 @@ shiny::shinyServer(function(input, output, session) {
     removeModal(session = getDefaultReactiveDomain())
     updateSelectInput(session,
                       "routeId",
-                      choices = loadDataRouteId()$route_id)
+                      choices = loadDataRoute()$route_id)
   })
 
   observeEvent(input$saveFactors, {
@@ -62,9 +67,9 @@ shiny::shinyServer(function(input, output, session) {
 
   output$locationDestinationData <- renderText({
     paste(
-      loadDataRoute(input$routeId)$location,
+      loadDataRouteById(input$routeId)$location,
       "->",
-      loadDataRoute(input$routeId)$destination
+      loadDataRouteById(input$routeId)$destination
     )
   })
 
@@ -72,14 +77,14 @@ shiny::shinyServer(function(input, output, session) {
     cbind(rnorm(40) * 2 + 13, rnorm(40) + 48)
   }, ignoreNULL = FALSE)
 
-  output$mymap <- leaflet::renderLeaflet({
-    leaflet::leaflet() %>%
-      leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
-      leaflet::setView(lng=123.89071, lat=10.31672, zoom = 15)
-  })
+  # output$mymap <- leaflet::renderLeaflet({
+  #   leaflet::leaflet() %>%
+  #     leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
+  #     leaflet::setView(lng=123.89071, lat=10.31672, zoom = 15)
+  # })
 
   observeEvent(input$createRoute, {
-    shiny::callModule(module = createRouteModal, id = "createRouteModal", loadDataStreets)
+    shiny::callModule(module = createRouteModal, id = "createRouteModal", loadDataStreets()$street_name)
   })
 
   observeEvent(input$createFactors, {
@@ -94,15 +99,26 @@ shiny::shinyServer(function(input, output, session) {
 
   output$DFSmap <- leaflet::renderLeaflet({
     leaflet::leaflet() %>%
-      leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
-      leaflet::addMarkers(lng=123.847311, lat=10.271590, popup="CSR") %>%
-      leaflet::addMarkers(lng=123.870742, lat=10.289747, popup="F.Llamas_CSR") %>%
-      # leaflet::addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R") %>%
-      leaflet::addPolylines(lng=c(123.847311, 123.870742), lat=c(10.271590, 10.289747), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+      leaflet::addTiles() %>%
+      leaflet::setView(lng = 123.89071, lat = 10.31672, zoom = 15)
   })
+  observeEvent(input$showMap, {
+    output$DFSmap <- leaflet::renderLeaflet({
+      leaflet::leaflet() %>%
+        leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
+        leaflet::addMarkers(lng = loadDataByStreetName(input$locationSearchId)$longitude,
+                            lat = loadDataByStreetName(input$locationSearchId)$latitude,
+                            popup = input$locationSearchId) %>%
+        leaflet::addMarkers(lng = loadDataByStreetName(input$destinationSearchId)$longitude,
+                            lat = loadDataByStreetName(input$destinationSearchId)$latitude,
+                            popup = input$destinationSearchId)
+    })
+  })
+
+
 })
 
-loadDataRouteId <- function() {
+loadDataRoute <- function() {
   tableRoute <- "routes"
   data <- shiny::callModule(module = loadData, id = "loadData", tableRoute)
 }
@@ -111,12 +127,12 @@ loadDataRouteId <- function() {
 #' Retrieve function that simply load route from MySQL.
 #'
 #' @export
-loadDataRoute <- function(id) {
+loadDataRouteById <- function(id) {
   tableRoute <- "routes"
   data <- shiny::callModule(module = loadDataById, id = "loadDataById", id, tableRoute)
 }
 
-#' Load function that stores factors for route in database.
+#' Retrieve data from factors with given id for route in database.
 #'
 #' @param tableFactors table name for factors.
 #' @param id route id from saving factors.
@@ -126,7 +142,7 @@ loadDataFactors <- function(id) {
   data <- shiny::callModule(module = loadDataById, id = "loadDataById", id, tableFactors)
 }
 
-#' Retrieve function that simply load streets from MySQL.
+#' Retrieve data from streets from MySQL.
 #'
 #' @export
 # load data from streets
@@ -135,3 +151,15 @@ loadDataStreets <- function() {
   data <- shiny::callModule(module = loadData, id = "loadData", tableStreets)
   data
 }
+
+#' Retrieve data from streets with condition from MySQL.
+#'
+#' @export
+# load data from streets
+loadDataByStreetName <- function(name) {
+  tableStreets <- "streets"
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets)
+  data
+}
+
+

@@ -23,7 +23,6 @@ fieldsFactors <-
     "day",
     "cars",
     "lanes",
-    "damage",
     "zones",
     "events",
     "weather",

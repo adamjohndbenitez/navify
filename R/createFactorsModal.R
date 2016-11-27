@@ -95,20 +95,6 @@ createFactorsModal <- function(input, output, session) {
           shiny::column(
             width = 3,
             shiny::selectInput(
-              inputId = "damage",
-              label = "Damage:",
-              choices = list(
-                "None" = 0,
-                "Patholes" = 1,
-                "Muddy Road" = 2,
-                "Construction" = 3
-              ),
-              selected = 1
-            )
-          ),
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
               inputId = "zones",
               label = "Zone:",
               choices = list(
@@ -143,10 +129,7 @@ createFactorsModal <- function(input, output, session) {
               ),
               selected = 1
             )
-          )
-        ),
-        shiny::column(
-          width = 12,
+          ),
           shiny::column(
             width = 3,
             shiny::selectInput(
@@ -160,7 +143,10 @@ createFactorsModal <- function(input, output, session) {
               ),
               selected = 1
             )
-          ),
+          )
+        ),
+        shiny::column(
+          width = 12,
           shiny::column(
             width = 3,
             shiny::numericInput(inputId = "route_id",

@@ -91,7 +91,7 @@ createTableFactors<- function() {
                           password = options()$mysql$password)
   query <- sprintf("CREATE TABLE %s.factors (factors_id INT AUTO_INCREMENT PRIMARY KEY,
                    route_id INT, time INT, day INT, cars INT, lanes INT, zones INT, events INT,
-                   weather INT, distance INT, FOREIGN KEY (route_id) REFERENCES route(route_id));",
+                   weather INT, distance INT, FOREIGN KEY (route_id) REFERENCES routes(route_id));",
                    databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
@@ -146,3 +146,21 @@ selectStreets <- function() {
   data$street_name
 }
 selectStreets()
+
+# Select data with condition from table streets
+selectStreetsByName <- function() {
+  tableStreets <- "streets"
+  cond <- "CSR"
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
+                          port = options()$mysql$port, user = options()$mysql$user,
+                          password = options()$mysql$password)
+
+  # Construct the fetching query
+  query <-
+    sprintf("SELECT * FROM %s WHERE street_name = '%s'", tableStreets, cond)
+  # Submit the fetch query and disconnect
+  data <- DBI::dbGetQuery(db, query)
+  RMySQL::dbDisconnect(db)
+  data$latitude
+}
+as.double(selectStreetsByName())

@@ -19,7 +19,7 @@ shiny::shinyUI(shiny::fluidPage(
         shiny::fluidRow(
           shinydashboard::box(title = "Select location & destination", status = "primary", solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
                               shiny::column(width = 12,
-                                            shiny::column(width = 6,
+                                            shiny::column(width = 5,
                                             # Select location
                                             shiny::selectInput(
                                               inputId = "locationSearchId",
@@ -27,13 +27,19 @@ shiny::shinyUI(shiny::fluidPage(
                                               ""
                                             )),
 
-                                            shiny::column(width = 6,
+                                            shiny::column(width = 5,
                                             # Select destination
                                             shiny::selectInput(
                                               inputId = "destinationSearchId",
                                               label = "Select Destination",
                                               ""
-                                            ))
+                                            )),
+                                            shiny::column(width = 2,
+                                                          shiny::wellPanel(
+                                                          shiny::actionButton(
+                                                            inputId = "showMap", label = "Show Map", icon = shiny::icon(name = "map", class = "fa-1x", lib = "font-awesome"))
+                                                          )
+                                            )
                                             )
                               )
         ),

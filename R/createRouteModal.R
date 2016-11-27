@@ -1,4 +1,4 @@
-createRouteModal <- function(input, output, session, streetsData) {
+createRouteModal <- function(input, output, session, loadDataStreets) {
   shiny::showModal(shiny::modalDialog(
     title = "Create Route",
     footer = shiny::tagList(
@@ -15,7 +15,7 @@ createRouteModal <- function(input, output, session, streetsData) {
         shiny::selectInput(
           inputId = "location",
           label = "Select Location",
-          choices = streetsData()$name
+          choices = loadDataStreets
         )
       ),
       shiny::column(
@@ -24,7 +24,7 @@ createRouteModal <- function(input, output, session, streetsData) {
         shiny::selectInput(
           inputId = "destination",
           label = "Select Destination",
-          choices = streetsData()$name
+          choices = loadDataStreets
         )
       )
     ))
