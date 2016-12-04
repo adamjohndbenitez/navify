@@ -97,10 +97,12 @@ shiny::shinyServer(function(input, output, session) {
     })
   })
 
+  # initial map, showing all streets
   output$DFSmap <- leaflet::renderLeaflet({
-    leaflet::leaflet() %>%
+    leaflet::leaflet(data = loadDataStreets()) %>%
       leaflet::addTiles() %>%
-      leaflet::setView(lng = 123.89071, lat = 10.31672, zoom = 15)
+      leaflet::setView(lng = 123.8854, lat = 10.3157, zoom = 12) %>%
+      leaflet::addMarkers(lng = ~longitude, lat = ~latitude, popup = as.character(loadDataStreets()$street_name), clusterOptions = leaflet::markerClusterOptions())
   })
   observeEvent(input$showMap, {
     output$DFSmap <- leaflet::renderLeaflet({
