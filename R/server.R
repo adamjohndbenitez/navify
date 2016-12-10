@@ -106,61 +106,105 @@ shiny::shinyServer(function(input, output, session) {
       leaflet::setView(lng = 123.8854, lat = 10.3157, zoom = 12) %>%
       leaflet::addMarkers(lng = ~longitude, lat = ~latitude, popup = as.character(loadDataStreets()$street_name), clusterOptions = leaflet::markerClusterOptions())
   })
-  observeEvent(input$showMap, {
-    # initialize variables for depth first search
-      dfsEnv$vis <- hash::hash()
-      dfsEnv$path <- c()
-      dfsEnv$allPaths <- list()
-      street_nodes <- 34
-      for (i in 1:street_nodes) {
-        hash::.set(dfsEnv$vis, keys=i, values=FALSE)
-      }
-      dfs(loadDataByStreetName(input$locationSearchId)$street_id,
-          loadDataByStreetName(input$destinationSearchId)$street_id)
-      print(dfsEnv$allPaths)
+  # observeEvent(input$showMap, {
+  #   # initialize variables for depth first search
+  #     dfsEnv$vis <- hash::hash()
+  #     dfsEnv$path <- c()
+  #     dfsEnv$allPaths <- list()
+  #     street_nodes <- 34
+  #     for (i in 1:street_nodes) {
+  #       hash::.set(dfsEnv$vis, keys=i, values=FALSE)
+  #     }
+  #     dfs(loadDataByStreetName(input$locationSearchId)$street_id,
+  #         loadDataByStreetName(input$destinationSearchId)$street_id)
+  #     print(dfsEnv$allPaths)
+  #
+  #   output$DFSmap <- leaflet::renderLeaflet({
+  #     m <- leaflet::leaflet()
+  #     m <- leaflet::addTiles(m)
+  #     m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$locationSearchId)$longitude,
+  #                           lat = loadDataByStreetName(input$locationSearchId)$latitude,
+  #                           popup = input$locationSearchId)
+  #     m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$destinationSearchId)$longitude,
+  #                           lat = loadDataByStreetName(input$destinationSearchId)$latitude,
+  #                           popup = input$destinationSearchId)
+  #     for (j in 1:length(dfsEnv$allPaths)) {
+  #       for (i in 1:length(dfsEnv$allPaths[[j]])) {
+  #         if (!gtools::invalid(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1]))) {
+  #           m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$longitude, digits = 6),
+  #                                       round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$longitude, digits = 6)),
+  #                                 lat=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$latitude, digits = 6),
+  #                                       round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+  #         }
+  #       }
+  #     }
+  #     m
+  #   })
+  # })
 
-    output$DFSmap <- leaflet::renderLeaflet({
-      m <- leaflet::leaflet()
-      m <- leaflet::addTiles(m)
-      m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$locationSearchId)$longitude,
-                            lat = loadDataByStreetName(input$locationSearchId)$latitude,
-                            popup = input$locationSearchId)
-      m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$destinationSearchId)$longitude,
-                            lat = loadDataByStreetName(input$destinationSearchId)$latitude,
-                            popup = input$destinationSearchId)
-      for (j in 1:length(dfsEnv$allPaths)) {
-        for (i in 1:length(dfsEnv$allPaths[[j]])) {
-          if (!gtools::invalid(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1]))) {
-            m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$longitude, digits = 6),
-                                        round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$longitude, digits = 6)),
-                                  lat=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$latitude, digits = 6),
-                                        round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
-          }
-        }
+    observeEvent(input$possiblePaths, {
+    # initialize variables for depth first search
+    dfsEnv$vis <- hash::hash()
+    dfsEnv$path <- c()
+    dfsEnv$allPaths <- list()
+    street_nodes <- 34
+    for (i in 1:street_nodes) {
+      hash::.set(dfsEnv$vis, keys=i, values=FALSE)
+    }
+    dfs(loadDataByStreetName(input$locationSearchId)$street_id,
+        loadDataByStreetName(input$destinationSearchId)$street_id)
+    print(dfsEnv$allPaths)
+
+    street_names <- c()
+    for (i in 1:length(dfsEnv$allPaths)) {
+      streets <- ""
+      for (id in dfsEnv$allPaths[[i]]) {
+        streets <- paste(streets, values = loadDataByStreetId(id)$street_name, sep = " ==>> ")
       }
-      m
+      street_names <- append(x = street_names, values = streets)
+    }
+
+    shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal")
+    observe({
+      # Show data from loadData selecting street table to selectInput
+      updateSelectInput(session = session,
+                        inputId = "possiblePathsId",
+                        choices = street_names)
+    })
+    observeEvent(input$showMap, {
+      removeModal(session = getDefaultReactiveDomain())
+      street_ids <- c()
+      splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
+      splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1) # removes the first empty element.
+      # print(splitTokens[[1]])
+      for (street in splitTokens[[1]]) {
+        street_ids <- append(x = street_ids, values = loadDataByStreetName(street)$street_id)
+      }
+      # print(street_ids)
+
+      output$DFSmap <- leaflet::renderLeaflet({
+        m <- leaflet::leaflet()
+        m <- leaflet::addTiles(m)
+        m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$locationSearchId)$longitude,
+                              lat = loadDataByStreetName(input$locationSearchId)$latitude,
+                              popup = input$locationSearchId)
+        m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$destinationSearchId)$longitude,
+                              lat = loadDataByStreetName(input$destinationSearchId)$latitude,
+                              popup = input$destinationSearchId)
+          for (i in 1:length(street_ids)) {
+            if (!gtools::invalid(loadDataByStreetId(street_ids[i+1]))) {
+              m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(street_ids[i])$longitude, digits = 6),
+                                          round(loadDataByStreetId(street_ids[i+1])$longitude, digits = 6)),
+                                    lat=c(round(loadDataByStreetId(street_ids[i])$latitude, digits = 6),
+                                          round(loadDataByStreetId(street_ids[i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+            }
+          }
+        m
+      })
+
     })
   })
 
-  # observeEvent(input$possiblePaths, {
-  #   # initialize variables for depth first search
-  #   dfsEnv$vis <- hash::hash()
-  #   dfsEnv$path <- c()
-  #   dfsEnv$allPaths <- list()
-  #   street_nodes <- 34
-  #   for (i in 1:street_nodes) {
-  #     hash::.set(dfsEnv$vis, keys=i, values=FALSE)
-  #   }
-  #   dfs(loadDataByStreetName(input$locationSearchId)$street_id,
-  #       loadDataByStreetName(input$destinationSearchId)$street_id)
-  #   print(dfsEnv$allPaths)
-  #   column_name <- c()
-  #   for (i in 1:length(dfsEnv$allPaths)) {
-  #     column_name <- append(x = column_name, values = toString(x = ))
-  #   }
-  #   names(dfsEnv$allPaths) <- column_name
-  #   shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal", names(dfsEnv$allPaths))
-  # })
 
 })
 
