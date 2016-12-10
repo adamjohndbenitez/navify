@@ -2,7 +2,7 @@ createRouteModal <- function(input, output, session, loadDataStreets) {
   shiny::showModal(shiny::modalDialog(
     title = "Create Route",
     footer = shiny::tagList(
-      shiny::actionButton("saveRoute", "saveRoute"),
+      shiny::actionButton(inputId = "saveRoute", label = "Save Route"),
       shiny::modalButton("Cancel")
     ),
     size = "m",

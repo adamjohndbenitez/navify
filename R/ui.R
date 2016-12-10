@@ -36,8 +36,8 @@ shiny::shinyUI(shiny::fluidPage(
                                             )),
                                             shiny::column(width = 2,
                                                           shiny::wellPanel(
-                                                          shiny::actionButton(
-                                                            inputId = "showMap", label = "Show Map", icon = shiny::icon(name = "map", class = "fa-1x", lib = "font-awesome"))
+                                                            shiny::actionButton(
+                                                              inputId = "showMap", label = "Show Map", icon = shiny::icon(name = "map", class = "fa-1x", lib = "font-awesome"))
                                                           )
                                             )
                                             )

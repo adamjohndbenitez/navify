@@ -41,3 +41,5 @@ options(mysql = list(
 # If you modify global options() or graphics par(), save the old values and reset when you’re done
 old <- options(stringsAsFactors = FALSE)
 on.exit(options(old), add = TRUE)
+
+dfsEnv <- new.env(hash = TRUE, parent = parent.frame())

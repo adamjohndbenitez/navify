@@ -102,7 +102,7 @@ workspace <- 'C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Ca
 setwd(workspace)
 # Inserting data in table streets
 insertStreets <- function() {
-  streets <- openxlsx::readWorkbook(xlsxFile = "street.xlsx")
+  streets <- openxlsx::readWorkbook(xlsxFile = "streets.xlsx")
   db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
                           port = options()$mysql$port, user = options()$mysql$user,
                           password = options()$mysql$password)

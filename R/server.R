@@ -5,6 +5,7 @@ shiny::shinyServer(function(input, output, session) {
   base::source("R/loadDataWhereCond.R")
   base::source("R/createRouteModal.R")
   base::source("R/createFactorsModal.R")
+  base::source("R/possiblePathsModal.R")
 
   observe({
     # Show data from loadData to selectInput
@@ -97,6 +98,7 @@ shiny::shinyServer(function(input, output, session) {
     })
   })
 
+  dfsEnv$edges <- loadDataEdges()
   # initial map, showing all streets
   output$DFSmap <- leaflet::renderLeaflet({
     leaflet::leaflet(data = loadDataStreets()) %>%
@@ -105,18 +107,60 @@ shiny::shinyServer(function(input, output, session) {
       leaflet::addMarkers(lng = ~longitude, lat = ~latitude, popup = as.character(loadDataStreets()$street_name), clusterOptions = leaflet::markerClusterOptions())
   })
   observeEvent(input$showMap, {
+    # initialize variables for depth first search
+      dfsEnv$vis <- hash::hash()
+      dfsEnv$path <- c()
+      dfsEnv$allPaths <- list()
+      street_nodes <- 34
+      for (i in 1:street_nodes) {
+        hash::.set(dfsEnv$vis, keys=i, values=FALSE)
+      }
+      dfs(loadDataByStreetName(input$locationSearchId)$street_id,
+          loadDataByStreetName(input$destinationSearchId)$street_id)
+      print(dfsEnv$allPaths)
+
     output$DFSmap <- leaflet::renderLeaflet({
-      leaflet::leaflet() %>%
-        leaflet::addTiles() %>%  # Add default OpenStreetMap map tiles
-        leaflet::addMarkers(lng = loadDataByStreetName(input$locationSearchId)$longitude,
+      m <- leaflet::leaflet()
+      m <- leaflet::addTiles(m)
+      m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$locationSearchId)$longitude,
                             lat = loadDataByStreetName(input$locationSearchId)$latitude,
-                            popup = input$locationSearchId) %>%
-        leaflet::addMarkers(lng = loadDataByStreetName(input$destinationSearchId)$longitude,
+                            popup = input$locationSearchId)
+      m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$destinationSearchId)$longitude,
                             lat = loadDataByStreetName(input$destinationSearchId)$latitude,
                             popup = input$destinationSearchId)
+      for (j in 1:length(dfsEnv$allPaths)) {
+        for (i in 1:length(dfsEnv$allPaths[[j]])) {
+          if (!gtools::invalid(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1]))) {
+            m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$longitude, digits = 6),
+                                        round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$longitude, digits = 6)),
+                                  lat=c(round(loadDataByStreetId(dfsEnv$allPaths[[j]][i])$latitude, digits = 6),
+                                        round(loadDataByStreetId(dfsEnv$allPaths[[j]][i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+          }
+        }
+      }
+      m
     })
   })
 
+  # observeEvent(input$possiblePaths, {
+  #   # initialize variables for depth first search
+  #   dfsEnv$vis <- hash::hash()
+  #   dfsEnv$path <- c()
+  #   dfsEnv$allPaths <- list()
+  #   street_nodes <- 34
+  #   for (i in 1:street_nodes) {
+  #     hash::.set(dfsEnv$vis, keys=i, values=FALSE)
+  #   }
+  #   dfs(loadDataByStreetName(input$locationSearchId)$street_id,
+  #       loadDataByStreetName(input$destinationSearchId)$street_id)
+  #   print(dfsEnv$allPaths)
+  #   column_name <- c()
+  #   for (i in 1:length(dfsEnv$allPaths)) {
+  #     column_name <- append(x = column_name, values = toString(x = ))
+  #   }
+  #   names(dfsEnv$allPaths) <- column_name
+  #   shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal", names(dfsEnv$allPaths))
+  # })
 
 })
 
@@ -154,14 +198,70 @@ loadDataStreets <- function() {
   data
 }
 
-#' Retrieve data from streets with condition from MySQL.
+#' Retrieve data from streets with street_name from MySQL.
 #'
+#' @param name name of the street.
 #' @export
 # load data from streets
 loadDataByStreetName <- function(name) {
   tableStreets <- "streets"
-  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets)
+  columnName <- "street_name"
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets, columnName)
   data
 }
 
+#' Retrieve data from streets with street_id from MySQL.
+#'
+#' @param name name of the street.
+#' @export
+# load data from streets
+loadDataByStreetId <- function(name) {
+  tableStreets <- "streets"
+  columnName <- "street_id"
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets, columnName)
+  data
+}
 
+#' Retrieve data from streets from MySQL.
+#'
+#' @export
+# load data from streets
+loadDataEdges <- function() {
+  tableEdges <- "edges"
+  data <- shiny::callModule(module = loadData, id = "loadData", tableEdges)
+  data
+}
+
+dfs <- function (loc, des) {
+  result <- c()
+
+  if (loc == des) {
+    pathSize = length(dfsEnv$path)
+    for (i in 0:pathSize) {
+      result <- append(x = result, values = dfsEnv$path[i])
+    }
+    result <- append(x = result, values = des)
+
+    lastVectorOfAll <- (length(dfsEnv$allPaths) + 1)
+    dfsEnv$allPaths[[lastVectorOfAll]] <- result
+    return()
+  }
+
+  if (hash::values(dfsEnv$vis, loc)) {
+    return()
+  }
+
+  hash::values(dfsEnv$vis, keys=loc) <- TRUE
+
+  for (i in 1:length(dfsEnv$edges$edge_id)) {
+    first <- dfsEnv$edges$start_vertex[i]
+    second <- dfsEnv$edges$end_vertex[i]
+    if (first == loc) {
+      dfsEnv$path <- append(x = dfsEnv$path, values = first)
+      dfs(second, des)
+      # lastElem <- length(dfsEnv$path)
+      # dfsEnv$path[[lastElem]] <- NULL
+      dfsEnv$path <- head(dfsEnv$path, -1)
+    }
+  }
+}
