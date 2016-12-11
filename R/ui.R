@@ -47,10 +47,7 @@ shiny::shinyUI(shiny::fluidPage(
           shinydashboard::box(width = 12,
             leaflet::leafletOutput(outputId = "DFSmap", width = "100%", height = "400px")
           )
-        ),
-        shiny::fluidRow(
-          shinydashboard::box(width = 12, p("datatables for possible path"))
-          )
+        )
       ),
       shinydashboard::tabItem(
         tabName = "dataFactors",

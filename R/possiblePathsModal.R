@@ -2,8 +2,8 @@ possiblePathsModal <- function(input, output, session) {
   shiny::showModal(shiny::modalDialog(
     title = "Possible Paths",
     footer = shiny::tagList(
-      shiny::actionButton(inputId = "showMap", label = "Show Map"),
-      shiny::modalButton("Cancel")
+      shiny::actionButton(inputId = "showMap", label = "Show in Map"),
+      shiny::modalButton("Close")
     ),
     size = "l",
     easyClose = FALSE,

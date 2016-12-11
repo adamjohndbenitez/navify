@@ -104,6 +104,7 @@ shiny::shinyServer(function(input, output, session) {
     leaflet::leaflet(data = loadDataStreets()) %>%
       leaflet::addTiles() %>%
       leaflet::setView(lng = 123.8854, lat = 10.3157, zoom = 12) %>%
+      leaflet::clearShapes() %>%
       leaflet::addMarkers(lng = ~longitude, lat = ~latitude, popup = as.character(loadDataStreets()$street_name), clusterOptions = leaflet::markerClusterOptions())
   })
   # observeEvent(input$showMap, {
@@ -172,7 +173,6 @@ shiny::shinyServer(function(input, output, session) {
                         choices = street_names)
     })
     observeEvent(input$showMap, {
-      removeModal(session = getDefaultReactiveDomain())
       street_ids <- c()
       splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
       splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1) # removes the first empty element.
@@ -182,23 +182,55 @@ shiny::shinyServer(function(input, output, session) {
       }
       # print(street_ids)
 
+      # test curves.
+      curves <- openxlsx::readWorkbook(xlsxFile = "curves.xlsx")
+
+
       output$DFSmap <- leaflet::renderLeaflet({
         m <- leaflet::leaflet()
         m <- leaflet::addTiles(m)
+        m <- leaflet::clearShapes(m)
         m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$locationSearchId)$longitude,
                               lat = loadDataByStreetName(input$locationSearchId)$latitude,
                               popup = input$locationSearchId)
         m <- leaflet::addMarkers(map = m, lng = loadDataByStreetName(input$destinationSearchId)$longitude,
                               lat = loadDataByStreetName(input$destinationSearchId)$latitude,
                               popup = input$destinationSearchId)
-          for (i in 1:length(street_ids)) {
-            if (!gtools::invalid(loadDataByStreetId(street_ids[i+1]))) {
-              m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(street_ids[i])$longitude, digits = 6),
-                                          round(loadDataByStreetId(street_ids[i+1])$longitude, digits = 6)),
-                                    lat=c(round(loadDataByStreetId(street_ids[i])$latitude, digits = 6),
-                                          round(loadDataByStreetId(street_ids[i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+        # for (i in 1:length(street_ids)) {
+        #   if (!gtools::invalid(loadDataByStreetId(street_ids[i+1]))) {
+        #     m <- leaflet::addPolylines(map = m, lng=c(round(loadDataByStreetId(street_ids[i])$longitude, digits = 6),
+        #                                               round(loadDataByStreetId(street_ids[i+1])$longitude, digits = 6)),
+        #                                lat=c(round(loadDataByStreetId(street_ids[i])$latitude, digits = 6),
+        #                                      round(loadDataByStreetId(street_ids[i+1])$latitude,  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+        #   }
+        # }
+
+        for (i in 1:nrow(curves)) {
+          for (j in 1:length(street_ids)) {
+            if (!gtools::invalid(street_ids[j+1])) {
+              if (((curves[i, 2] == street_ids[j]) & (curves[i, 3] == street_ids[j+1])) |
+                  ((curves[i, 2] == street_ids[j+1]) & (curves[i, 3] == street_ids[j]))) {
+                # cat(curves[i, 2], " -- ", curves[i, 3], "\n")
+                # cat("latlons : ", curves[i, 4], "\n")
+                latlons <- strsplit(x = curves[i, 4], split = ":")
+                unlist_latlons <- unlist(latlons)
+                latlon <- strsplit(x = unlist_latlons, split = ",")
+                # print(length(latlon))
+                for (k in 1:length(latlon)) {
+                  # cat("lat -> ", latlon[[k]][1])
+                  # cat("lon -> ", latlon[[k]][2])
+                  if (!gtools::invalid(latlon[k+1])) {
+                    m <- leaflet::addPolylines(map = m, lng=c(round(as.double(latlon[[k]][2]), digits = 6),
+                                                              round(as.double(latlon[[k+1]][2]), digits = 6)),
+                                               lat=c(round(as.double(latlon[[k]][1]), digits = 6),
+                                                     round(as.double(latlon[[k+1]][1]),  digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = "pull something")
+                  }
+                }
+              }
             }
           }
+        }
+
         m
       })
 
