@@ -7,7 +7,7 @@ loadDataById <- function(input, output, session, id, table) {
 
   # Construct the fetching query
   query <-
-    sprintf("SELECT * FROM %s WHERE route_id = '%s'", table, id)
+    sprintf("SELECT * FROM %s WHERE street_id = '%s'", table, id)
   # Submit the fetch query and disconnect
   data <- DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)

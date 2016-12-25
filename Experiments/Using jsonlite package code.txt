@@ -1,0 +1,12 @@
+# shinydashboard::menuItem(text = "Using Jsonlite", tabName = "jsonlitePackage", icon = shiny::icon(name = "table", class = "fa-1x", lib = "font-awesome")),
+
+# shinydashboard::tabItem(tabName = "jsonlitePackage",
+#   shiny::actionButton("incidents", "IncidentReports")
+# ),
+
+  observeEvent(input$incidents, {
+    dataObject <- jsonlite::fromJSON("http://dev.virtualearth.net/REST/v1/Traffic/Incidents/45.219,-122.325,47.610,-122.107?key=AnpFWQs6cZEkl2G9VXn5WKKb-_FqEKF_nCe3G4C_6tRsxJ9BH1Dd0XL_hmTGU7Ro")
+    dataJson <- jsonlite::toJSON(dataObject, pretty = TRUE)
+    print(dataObject$resourceSet$resources[[1]])
+    print(dataJson)
+  })

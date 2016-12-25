@@ -1,0 +1,6 @@
+Time: 24hours
+Day: 1-7days
+Vehicles: (Based on CY 2011 SUMMARY TRAFFIC DATA)
+Lanes: no. of lanes
+Zones: 0-none, 1-schools, 2-malls, 3-call centers
+Events: 0-none, 1-ironman, 2-procession, 3-sinulog

@@ -18,15 +18,13 @@ fields <- c("name", "r_num_years")
 fieldsRoute <- c("location", "destination")
 fieldsFactors <-
   c(
-    "route_id",
+    "street_id",
     "time",
     "day",
-    "cars",
+    "vehicles",
     "lanes",
     "zones",
-    "events",
-    "weather",
-    "distance"
+    "events"
   )
 
 databaseNavify <- "navifactors"

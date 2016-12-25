@@ -3,8 +3,8 @@ createFactorsModal <- function(input, output, session) {
     showModal(modalDialog(
       title = "Create Factors",
       footer = tagList(
-        actionButton("saveFactors", "saveFactors"),
-        modalButton("Cancel")
+        actionButton(inputId = "saveFactors", label = "Save Factors", icon = shiny::icon(name = "floppy-o", class = "fa-1x", lib = "font-awesome")),
+        modalButton(label = "Cancel", icon = shiny::icon(name = "ban", class = "fa-1x", lib = "font-awesome"))
       ),
       size = "l",
       easyClose = FALSE,
@@ -72,8 +72,8 @@ createFactorsModal <- function(input, output, session) {
           shiny::column(
             width = 3,
             shiny::numericInput(
-              inputId = "cars",
-              label = "Cars:",
+              inputId = "vehicles",
+              label = "Vehicles:",
               value = 200,
               min = 1,
               max = 1000
@@ -100,32 +100,8 @@ createFactorsModal <- function(input, output, session) {
               choices = list(
                 "None" = 0,
                 "Schools" = 1,
-                "Mall" = 2,
+                "Malls" = 2,
                 "Call Centers" = 3
-              ),
-              selected = 1
-            )
-          ),
-          shiny::column(
-            width = 3,
-            shiny::numericInput(
-              inputId = "distance",
-              label = "Distance:",
-              value = 200,
-              min = 1,
-              max = 1000
-            )
-          ),
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
-              inputId = "weather",
-              label = "Weather:",
-              choices = list(
-                "Sunny" = 0,
-                "Windy" = 1,
-                "Heavy Rain" = 2,
-                "Storm" = 3
               ),
               selected = 1
             )
@@ -137,9 +113,9 @@ createFactorsModal <- function(input, output, session) {
               label = "Events:",
               choices = list(
                 "None" = 0,
-                "Sinulog" = 1,
-                "Fiesta" = 2,
-                "Ironman" = 3
+                "Ironman" = 1,
+                "procession" = 2,
+                "Sinulog" = 3
               ),
               selected = 1
             )
@@ -149,11 +125,10 @@ createFactorsModal <- function(input, output, session) {
           width = 12,
           shiny::column(
             width = 3,
-            shiny::numericInput(inputId = "route_id",
+            shiny::textInput(inputId = "street_id",
               label = "Route Id:",
-              min = 1,
-              max = 20,
-              value = 15
+              width = "100%",
+              value = ""
             )
           )
         )
