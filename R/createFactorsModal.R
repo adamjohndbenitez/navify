@@ -1,27 +1,18 @@
 createFactorsModal <- function(input, output, session) {
-    # get the value of the routeId from selected routId to modal create factors
-    showModal(modalDialog(
-      title = "Create Factors",
+  shiny::showModal(
+    shiny::modalDialog(title = "Create Factors",
       footer = tagList(
         actionButton(inputId = "saveFactors", label = "Save Factors", icon = shiny::icon(name = "floppy-o", class = "fa-1x", lib = "font-awesome")),
         modalButton(label = "Cancel", icon = shiny::icon(name = "ban", class = "fa-1x", lib = "font-awesome"))
-      ),
-      size = "l",
-      easyClose = FALSE,
-      # modal to create factors
+      ), size = "l", easyClose = FALSE,
       shiny::fluidRow(
-        shiny::column(
-          width = 12,
+        shiny::column(width = 12,
           shiny::column(width = 6, shiny::textOutput("locationText")),
           shiny::column(width = 6, shiny::textOutput("DestinationText"))
         ),
-        shiny::column(
-          width = 12,
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
-              inputId = "time",
-              label = "Time:",
+        shiny::column(width = 12,
+          shiny::column(width = 3,
+            shiny::selectInput(inputId = "time", label = "Time:",
               choices = list(
                 "6 AM" = 6,
                 "7 AM" = 7,
@@ -47,16 +38,11 @@ createFactorsModal <- function(input, output, session) {
                 "3 AM" = 3,
                 "4 AM" = 4,
                 "5 AM" = 5
-              ),
-              selected = 1
-            ),
-            selectize = TRUE
+              ), selected = 1
+            ), selectize = TRUE
           ),
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
-              inputId = "day",
-              label = "Day:",
+          shiny::column(width = 3,
+            shiny::selectInput(inputId = "day", label = "Day:",
               choices = list(
                 "Monday" = 1,
                 "Tuesday" = 2,
@@ -65,73 +51,48 @@ createFactorsModal <- function(input, output, session) {
                 "Friday" = 5,
                 "Saturday" = 6,
                 "Sunday" = 7
-              ),
-              selected = 1
+              ), selected = 1
             )
           ),
           shiny::column(
             width = 3,
-            shiny::numericInput(
-              inputId = "vehicles",
-              label = "Vehicles:",
-              value = 200,
-              min = 1,
-              max = 1000
+            shiny::numericInput(inputId = "vehicles", label = "Vehicles:", value = 200, min = 1, max = 1000
             )
           ),
-          shiny::column(
-            width = 3,
-            shiny::numericInput(
-              inputId = "lanes",
-              label = "Lane:",
-              value = 3,
-              min = 1,
-              max = 3
-            )
+          shiny::column(width = 3,
+            shiny::numericInput(inputId = "lanes", label = "Lane:", value = 3, min = 1, max = 3)
           )
         ),
-        shiny::column(
-          width = 12,
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
-              inputId = "zones",
-              label = "Zone:",
+        shiny::column(width = 12,
+          shiny::column(width = 3,
+            shiny::selectInput(inputId = "zones", label = "Zone:",
               choices = list(
                 "None" = 0,
                 "Schools" = 1,
                 "Malls" = 2,
                 "Call Centers" = 3
-              ),
-              selected = 1
+              ), selected = 1
             )
           ),
-          shiny::column(
-            width = 3,
-            shiny::selectInput(
-              inputId = "events",
-              label = "Events:",
+          shiny::column(width = 3,
+            shiny::selectInput(inputId = "events", label = "Events:",
               choices = list(
                 "None" = 0,
                 "Ironman" = 1,
                 "procession" = 2,
                 "Sinulog" = 3
-              ),
-              selected = 1
+              ), selected = 1
             )
           )
         ),
-        shiny::column(
-          width = 12,
-          shiny::column(
-            width = 3,
-            shiny::textInput(inputId = "street_id",
-              label = "Route Id:",
-              width = "100%",
-              value = ""
+        shiny::column(width = 12,
+          shiny::column(width = 3,
+            shinyjs::disabled(
+              shiny::textInput(inputId = "street_id", label = "Route Id:", width = "100%", value = "")
             )
           )
         )
       )
-    ))
+    )
+  )
 }

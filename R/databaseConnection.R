@@ -7,13 +7,6 @@
 #' @param password for security purposes.
 #' @export
 databaseConnection <- function(input, output, session) {
-  RMySQL::dbConnect(
-    RMySQL::MySQL(),
-    dbname = databaseNavify,
-    host = options()$mysql$host,
-    port = options()$mysql$port,
-    user = options()$mysql$user,
-    password = options()$mysql$password
-  )
+  RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseNavify, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
 }
 

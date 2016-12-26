@@ -1,12 +1,13 @@
 shiny::shinyUI(
   shiny::fluidPage(
+    shinyjs::useShinyjs(),
     shinydashboard::dashboardPage(
       shinydashboard::dashboardHeader(title = "Navify"),
       shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(
           shinydashboard::menuItem(text = "Possible Paths", tabName = "dfsTab", icon = shiny::icon(name = "map-o", class = "fa-1x", lib = "font-awesome")),
-          shinydashboard::menuItem(text = "Traffic Data Management", tabName = "factorsTab", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome"))
-
+          shinydashboard::menuItem(text = "Data Management", tabName = "factorsTab", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome")),
+          shinydashboard::menuItem(text = "Traffic Analysis", tabName = "analysisTab", icon = shiny::icon(name = "pie-chart", class = "fa-1x", lib = "font-awesome"))
         )
       ),
       shinydashboard::dashboardBody(
@@ -37,7 +38,7 @@ shiny::shinyUI(
           ),
           shinydashboard::tabItem(tabName = "factorsTab",
             shiny::fluidRow(
-              shinydashboard::tabBox(id = "tabSetSelectId", selected = "Factors", title = "Create", width = 6, height = "150px", side = "right",
+              shinydashboard::tabBox(id = "tabBoxId", selected = "Factors", title = "Create", width = 6, height = "150px", side = "right",
                 shiny::tabPanel(title = "Factors", icon = shiny::icon(name = "cubes", class = "fa-1x", lib = "font-awesome"),
                   shiny::column(width = 12,
                     shiny::column(width = 6,
@@ -45,7 +46,7 @@ shiny::shinyUI(
                     ),
                     shiny::column(width = 6,
                       shiny::wellPanel(
-                        shiny::actionButton(inputId = "createFactors", label = "Create Factors", icon = shiny::icon(name = "car", class = "fa-1x", lib = "font-awesome"))
+                        shiny::actionButton(inputId = "createFactors", label = "Add Factors", icon = shiny::icon(name = "car", class = "fa-1x", lib = "font-awesome"))
                       )
                     )
                   )
@@ -62,14 +63,28 @@ shiny::shinyUI(
                     )
                   )
                 )
+              ),
+              shinydashboard::box(title = "Delete", status = "danger",  width = 6, height = "150px", side = "right",
+                shiny::column(width = 12,
+                  shiny::column(width = 6,
+                    tags$br(),
+                    p("Clear all data from factors: ")
+                  ),
+                  shiny::column(width = 6,
+                    shiny::wellPanel(
+                      shiny::actionButton(inputId = "clearAllDataId", label = "Clear Factors", icon = shiny::icon(name = "eraser", class = "fa-1x", lib = "font-awesome"))
+                    )
+                  )
+                )
               )
             ),
             shiny::fluidRow(
-              shinydashboard::box(title = "Data Factors", status = "warning", width = 11,
-                shiny::column(width = 12, DT::dataTableOutput("factors", width = 550))
+              shinydashboard::box(title = "Data Factors", status = "warning", width = 12,
+                shiny::column(width = 12, DT::dataTableOutput("factors", width = 1000))
               )
             )
-          )
+          ),
+          shinydashboard::tabItem(tabName = "analysisTab", p("traffic analysisssss...."))
         )
       )
     )

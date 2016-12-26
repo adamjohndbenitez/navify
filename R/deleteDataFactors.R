@@ -1,12 +1,10 @@
 base::source("R/databaseConnection.R")
-#' Retrieve function that simply load streets from MySQL.
+#' Delete function that simply clear all factors from MySQL.
 #'
-#' @param table is the name of the table.
 #' @export
-#' loadData(tableName)
-loadData <- function(input, output, session, table) {
+deleteDataFactors <- function(input, output, session, table) {
   dbConnect <- shiny::callModule(module = databaseConnection, id = "databaseConnection")
-  query <- sprintf("SELECT * FROM %s", table)
+  query <- sprintf("TRUNCATE TABLE navifactors.%s", table)
   data <- DBI::dbGetQuery(conn = dbConnect, statement = query)
   RMySQL::dbDisconnect(conn = dbConnect)
   data

@@ -1,11 +1,11 @@
 shiny::shinyServer(function(input, output, session) {
-  base::source("R/saveData.R")
-  base::source("R/loadData.R")
-  base::source("R/loadDataById.R")
-  base::source("R/loadDataWhereCond.R")
   base::source("R/createRouteModal.R")
   base::source("R/createFactorsModal.R")
+  base::source("R/deleteDataFactors.R")
+  base::source("R/loadData.R")
+  base::source("R/loadDataWhereCond.R")
   base::source("R/possiblePathsModal.R")
+  base::source("R/saveData.R")
   base::source("R/saveImportedFactors.R")
 
   shiny::observe({
@@ -26,12 +26,13 @@ shiny::shinyServer(function(input, output, session) {
   })
 
   formDataFactors <- shiny::reactive({
-    data <- snippet::sapply(X = fieldsFactors, FUN = function(x) input[[x]])
+    data <- sapply(X = fieldsFactors, FUN = function(x) input[[x]])
     data
   })
 
   shiny::observeEvent(input$saveFactors, {
-    shiny::callModule(module = saveData, id = "saveData", formDataFactors(), "factors")
+    tableName <- "factors"
+    shiny::callModule(module = saveData, id = "saveData", formDataFactors(), tableName)
     shiny::removeModal(session = getDefaultReactiveDomain())
     output$factors <- DT::renderDataTable({
       loadDataFactors(input$routeName)
@@ -65,7 +66,7 @@ shiny::shinyServer(function(input, output, session) {
     leaflet::addMarkers(lng = ~longitude, lat = ~latitude, popup = as.character(loadDataStreets()$street_name), clusterOptions = leaflet::markerClusterOptions())
   })
 
-  observeEvent(input$possiblePaths, {
+  shiny::observeEvent(input$possiblePaths, {
     dfsEnv$vis <- hash::hash()
     dfsEnv$path <- c()
     dfsEnv$allPaths <- list()
@@ -88,14 +89,12 @@ shiny::shinyServer(function(input, output, session) {
     }
 
     shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal")
-    observe({
-      # Show data from loadData selecting street table to selectInput
-      updateSelectInput(session = session,
-                        inputId = "possiblePathsId",
-                        choices = street_names)
+
+    shiny::observe({
+      shiny::updateSelectInput(session = session, inputId = "possiblePathsId", choices = street_names)
     })
 
-    observeEvent(input$showMap, {
+    shiny::observeEvent(input$showMap, {
       street_ids <- c()
       splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
       splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1)
@@ -139,7 +138,7 @@ shiny::shinyServer(function(input, output, session) {
     })
   })
 
-  observeEvent(input$importExcelFactorsId, {
+  shiny::observeEvent(input$importExcelFactorsId, {
     inFile <- input$excelFileUploadId
 
     if (is.null(inFile))
@@ -149,19 +148,70 @@ shiny::shinyServer(function(input, output, session) {
 
     # caution: no validation
     if (length(sheetNameFile) >= 1) {
-      withProgress(expr = {
+      shiny::withProgress(expr = {
         for (s in sheetNameFile) {
-          incProgress(amount = 1/length(sheetNameFile))
-          Sys.sleep(0.25)
-          factors <- openxlsx::readWorkbook(xlsxFile = inFile$datapath, sheet = s)
-          shiny::callModule(module = saveImportedFactors, id = "saveImportedFactors", factors, "factors")
+          shiny::incProgress(amount = 1/length(sheetNameFile), detail = s)
+          base::Sys.sleep(0.25)
+          dataFactors <- openxlsx::readWorkbook(xlsxFile = inFile$datapath, sheet = s)
+          shiny::callModule(module = saveImportedFactors, id = "saveImportedFactors", dataFactors, "factors")
         }
-      }, value = 0, message = "Progessing: ", detail = "This may take a while...")
+      }, value = 0, message = "Progessing: ")
     }
 
+    output$factors <- DT::renderDataTable({
+      loadDataFactors(input$routeName)
+    }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
   })
 
+  shiny::observeEvent(input$clearAllDataId, {
+    shiny::callModule(module = deleteDataFactors, id = "deleteDataFactors", "factors")
+    output$factors <- DT::renderDataTable({
+      loadDataFactors(input$routeName)
+    }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
+  })
 })
+
+#' Retrieve data from streets from MySQL.
+#'
+#' @param tableStreets table name for streets.
+#' @export
+# load data from streets
+loadDataStreets <- function() {
+  data <- shiny::callModule(module = loadData, id = "loadData", "streets")
+}
+
+#' Retrieve data from streets from MySQL.
+#'
+#' @param tableEdges table name for edges.
+#' @export
+# load data from streets
+loadDataEdges <- function() {
+  data <- shiny::callModule(module = loadData, id = "loadData", "edges")
+  data
+}
+
+#' Retrieve data from streets with street_id from MySQL.
+#'
+#' @param name name of the street.
+#' @param tableStreets table name for streets.
+#' @param columnName column name for streets.
+#' @export
+# load data from streets
+loadDataByStreetId <- function(value) {
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "streets", "street_id", value)
+  data
+}
+
+#' Retrieve data from streets with street_name from MySQL.
+#'
+#' @param name name of the street.
+#' @param tableStreets table name for streets.
+#' @export
+# load data from streets
+loadDataByStreetName <- function(value) {
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "streets", "street_name", value)
+  data
+}
 
 #' Retrieve data from factors with given id for route in database.
 #'
@@ -169,66 +219,28 @@ shiny::shinyServer(function(input, output, session) {
 #' @param id route id from saving factors.
 #' loadDataFactors(id)
 loadDataFactors <- function(name) {
-  id <- loadDataByStreetName(name)$street_id
-  tableFactors <- "factors"
-  data <- shiny::callModule(module = loadDataById, id = "loadDataById", id, tableFactors)
-}
-
-#' Retrieve data from streets from MySQL.
-#'
-#' @export
-# load data from streets
-loadDataStreets <- function() {
-  tableStreets <- "streets"
-  data <- shiny::callModule(module = loadData, id = "loadData", tableStreets)
+  value <- loadDataByStreetName(name)$street_id
+  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "factors", "street_id", value)
   data
 }
 
-#' Retrieve data from streets with street_name from MySQL.
+#' Produce possible paths on the given location and destination.
 #'
-#' @param name name of the street.
+#' @param loc is the selected location by user.
+#' @param des is the selected destination by user.
 #' @export
-# load data from streets
-loadDataByStreetName <- function(name) {
-  tableStreets <- "streets"
-  columnName <- "street_name"
-  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets, columnName)
-  data
-}
-
-#' Retrieve data from streets with street_id from MySQL.
-#'
-#' @param name name of the street.
-#' @export
-# load data from streets
-loadDataByStreetId <- function(name) {
-  tableStreets <- "streets"
-  columnName <- "street_id"
-  data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", name, tableStreets, columnName)
-  data
-}
-
-#' Retrieve data from streets from MySQL.
-#'
-#' @export
-# load data from streets
-loadDataEdges <- function() {
-  tableEdges <- "edges"
-  data <- shiny::callModule(module = loadData, id = "loadData", tableEdges)
-  data
-}
-
+#' dfs(location, destination)
 dfs <- function (loc, des) {
   result <- c()
 
   if (loc == des) {
-    pathSize = length(dfsEnv$path)
+    pathSize = base::length(dfsEnv$path)
     for (i in 0:pathSize) {
-      result <- append(x = result, values = dfsEnv$path[i])
+      result <- base::append(x = result, values = dfsEnv$path[i])
     }
-    result <- append(x = result, values = des)
+    result <- base::append(x = result, values = des)
 
-    lastVectorOfAll <- (length(dfsEnv$allPaths) + 1)
+    lastVectorOfAll <- (base::length(dfsEnv$allPaths) + 1)
     dfsEnv$allPaths[[lastVectorOfAll]] <- result
     return()
   }
@@ -239,13 +251,13 @@ dfs <- function (loc, des) {
 
   hash::values(dfsEnv$vis, keys=loc) <- TRUE
 
-  for (i in 1:length(dfsEnv$edges$edge_id)) {
+  for (i in 1:base::length(dfsEnv$edges$edge_id)) {
     first <- dfsEnv$edges$start_vertex[i]
     second <- dfsEnv$edges$end_vertex[i]
     if (first == loc) {
-      dfsEnv$path <- append(x = dfsEnv$path, values = first)
+      dfsEnv$path <- base::append(x = dfsEnv$path, values = first)
       dfs(second, des)
-      dfsEnv$path <- head(dfsEnv$path, -1)
+      dfsEnv$path <- utils::head(dfsEnv$path, -1)
     }
   }
 }

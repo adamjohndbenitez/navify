@@ -3,103 +3,76 @@
 #' @examples
 #' dbScript()
 #' @export
-options(mysql = list(
+options(
+  mysql = list(
   "host" = "127.0.0.1",
   "port" = 3306,
   "user" = "root",
   "password" = ""
-))
+  )
+)
 
-# Create database navifactors
+# database name.
 databaseName <- "navifactors"
 
-# Select database navifactors
+# Select database navifactors.
 SelectDatabase <- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
-  query <- sprintf(
-    "SHOW SCHEMAS LIKE 'navifactors';",
-    databaseName
-  )
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
+  query <- sprintf("SHOW SCHEMAS LIKE 'navifactors';", databaseName)
   res <- DBI::dbSendQuery(db, query)
   DBI::dbFetch(res, n = -1)
   RMySQL::dbDisconnect(db)
 }
 SelectDatabase()
 
+# Create database navifactors.
 createDatabase <- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), host = options()$mysql$host,
-                  port = options()$mysql$port, user = options()$mysql$user,
-                  password = options()$mysql$password)
-  query <- sprintf(
-    "CREATE DATABASE IF NOT EXISTS %s;",
-    databaseName
-  )
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
+  query <- sprintf("CREATE DATABASE IF NOT EXISTS %s;", databaseName)
   DBI::dbGetQuery(db, query)
-  query <- sprintf(
-    "USE %s;",
-    databaseName
-  )
+  query <- sprintf("USE %s;", databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
 }
 createDatabase()
 
-# Create table streets
+# Create table streets.
 createTableStreets <- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
-  query <- sprintf("CREATE TABLE %s.streets (street_id INT AUTO_INCREMENT PRIMARY KEY,
-                   street_name VARCHAR(100), longitude DOUBLE, latitude DOUBLE);",
-                   databaseName)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
+  query <- sprintf("CREATE TABLE %s.streets (street_id INT AUTO_INCREMENT PRIMARY KEY, street_name VARCHAR(100), longitude DOUBLE, latitude DOUBLE);", databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
 }
 createTableStreets()
 
-# Create table edges
+# Create table edges.
 createTableEdges <- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
-  query <- sprintf("CREATE TABLE %s.edges (edge_id INT AUTO_INCREMENT PRIMARY KEY,
-                   start_vertex INT, end_vertex INT);",
-                   databaseName)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
+  query <- sprintf("CREATE TABLE %s.edges (edge_id INT AUTO_INCREMENT PRIMARY KEY, start_vertex INT, end_vertex INT);", databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
 }
 createTableEdges()
 
-# Create table factors
+# Create table factors.
 createTableFactors<- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
-  query <- sprintf("CREATE TABLE %s.factors (factors_id INT AUTO_INCREMENT PRIMARY KEY,
-                   street_id INT, time INT, day INT, vehicles DOUBLE, lanes INT, zones INT, events INT,
-                   FOREIGN KEY (street_id) REFERENCES streets(street_id));",
-                   databaseName)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
+  query <- sprintf("CREATE TABLE %s.factors (factors_id INT AUTO_INCREMENT PRIMARY KEY, street_id INT, time INT, day INT, vehicles DOUBLE, lanes INT, zones INT, events INT, FOREIGN KEY (street_id) REFERENCES streets(street_id));", databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
 }
 createTableFactors()
 
+# Set workspace.
 workspace <- 'C:\\Users\\Adam\\Documents\\CIT-U\\Masters of Computer Science\\Capstone - Thesis\\Navify - Traffixer\\Navify\\'
 setwd(workspace)
+
 # Inserting data in table streets
 insertStreets <- function() {
   streets <- openxlsx::readWorkbook(xlsxFile = "streets.xlsx")
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
   for (i in 1:nrow(streets)) {
-    query <- sprintf("INSERT INTO navifactors.streets (street_name, longitude, latitude)
-                     VALUES ('%s', %f, %f);",
-                     streets[i, 2],
-                     streets[i, 3],
-                     streets[i, 4])
+    query <- sprintf("INSERT INTO navifactors.streets (street_name, longitude, latitude) VALUES ('%s', %f, %f);", streets[i, 2], streets[i, 3], streets[i, 4])
     DBI::dbGetQuery(db, query)
   }
   RMySQL::dbDisconnect(db)
@@ -113,10 +86,7 @@ insertEdges <- function() {
                           port = options()$mysql$port, user = options()$mysql$user,
                           password = options()$mysql$password)
   for (i in 1:nrow(edges)) {
-    query <- sprintf("INSERT INTO navifactors.edges (street_id, time,)
-                     VALUES (%d, %d);",
-                     edges[i, 2],
-                     edges[i, 3])
+    query <- sprintf("INSERT INTO navifactors.edges (street_id, time,) VALUES (%d, %d);", edges[i, 2], edges[i, 3])
     DBI::dbGetQuery(db, query)
   }
   RMySQL::dbDisconnect(db)
@@ -126,9 +96,7 @@ insertEdges()
 # Inserting data in table factors
 insertEdges <- function() {
   factors <- openxlsx::readWorkbook(xlsxFile = "factors - dummy.xlsx")
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
   for (i in 1:nrow(factors)) {
     query <- sprintf("INSERT INTO navifactors.factors (start_vertex, end_vertex)
                      VALUES (%d, %d);",
@@ -142,9 +110,7 @@ insertEdges()
 
 # Select data from table streets
 selectStreets <- function() {
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
   query <- sprintf("SELECT * FROM navifactors.streets")
   data <- DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
@@ -156,13 +122,10 @@ selectStreets()
 selectStreetsByName <- function() {
   tableStreets <- "streets"
   cond <- "CSR"
-  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host,
-                          port = options()$mysql$port, user = options()$mysql$user,
-                          password = options()$mysql$password)
+  db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
 
   # Construct the fetching query
-  query <-
-    sprintf("SELECT * FROM %s WHERE street_name = '%s'", tableStreets, cond)
+  query <- sprintf("SELECT * FROM %s WHERE street_name = '%s'", tableStreets, cond)
   # Submit the fetch query and disconnect
   data <- DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
