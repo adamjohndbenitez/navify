@@ -1,0 +1,8 @@
+street_id -> street_id of streets table db.
+day -> Date(days of the month).
+month -> Date(month of the year).
+lanes -> no. of lanes on the streets
+zones -> zones that are near on street(source google maps).
+events -> 2011(past data - fun runs).
+	or 2017(present data - fun runs).
+       -> sinulog events(novena mass & grand parade or 	  sinulog fiestival).

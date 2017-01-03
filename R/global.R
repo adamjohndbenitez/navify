@@ -6,7 +6,7 @@ setwd(workspace)
 # Define the fields we want to save from the form
 fields <- c("name", "r_num_years")
 fieldsRoute <- c("location", "destination")
-fieldsFactors <- c("street_id", "time", "day", "vehicles", "lanes", "zones", "events")
+fieldsFactors <- c("street_id", "month", "day", "vehicles", "lanes", "zones", "events")
 
 databaseNavify <- "navifactors"
 

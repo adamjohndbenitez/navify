@@ -2,11 +2,15 @@ shiny::shinyServer(function(input, output, session) {
   base::source("R/createRouteModal.R")
   base::source("R/createFactorsModal.R")
   base::source("R/deleteDataFactors.R")
+  base::source("R/efficientPathModal.R")
   base::source("R/loadData.R")
   base::source("R/loadDataWhereCond.R")
+  base::source("R/loadDataFactorsWhereStreetIdMonthDay.R")
+  base::source("R/noPossiblePathsModal.R")
   base::source("R/possiblePathsModal.R")
   base::source("R/saveData.R")
   base::source("R/saveImportedFactors.R")
+  base::source("R/thereIsAPossiblePathsModal.R")
 
   shiny::observe({
     updateSelectInput(session = session, inputId = "routeName", choices = loadDataStreets()$street_name)
@@ -35,12 +39,12 @@ shiny::shinyServer(function(input, output, session) {
     shiny::callModule(module = saveData, id = "saveData", formDataFactors(), tableName)
     shiny::removeModal(session = getDefaultReactiveDomain())
     output$factors <- DT::renderDataTable({
-      loadDataFactors(input$routeName)
-    })
+      loadDataFactorsByStreetId(input$routeName)
+    }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
   })
 
   output$factors <- DT::renderDataTable({
-    loadDataFactors(input$routeName)
+    loadDataFactorsByStreetId(input$routeName)
   }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
 
   shiny::observeEvent(input$createRoute, {
@@ -50,7 +54,7 @@ shiny::shinyServer(function(input, output, session) {
   shiny::observeEvent(input$createFactors, {
     shiny::callModule(module = createFactorsModal, id = "createFactorsModal")
     shiny::observe({
-      modal_routeId <- loadDataByStreetName(input$routeName)$street_id
+      modal_routeId <- loadDataStreetsByStreetName(input$routeName)$street_id
       shiny::updateNumericInput(session = session, inputId = "street_id", value = modal_routeId)
 
     })
@@ -75,32 +79,27 @@ shiny::shinyServer(function(input, output, session) {
       hash::.set(dfsEnv$vis, keys=i, values=FALSE)
     }
 
-    dfs(loadDataByStreetName(input$locationSearchId)$street_id,loadDataByStreetName(input$destinationSearchId)$street_id)
-
-    print(dfsEnv$allPaths)
+    dfs(loadDataStreetsByStreetName(input$locationSearchId)$street_id,loadDataStreetsByStreetName(input$destinationSearchId)$street_id)
 
     street_names <- c()
     for (i in 1:length(dfsEnv$allPaths)) {
       streets <- ""
       for (id in dfsEnv$allPaths[[i]]) {
-        streets <- paste(streets, values = loadDataByStreetId(id)$street_name, sep = " ==>> ")
+        streets <- paste(streets, values = loadDataStreetsByStreetId(id)$street_name, sep = " ==>> ")
       }
       street_names <- append(x = street_names, values = streets)
     }
 
-    shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal")
+    shiny::callModule(module = possiblePathsModal, id = "possiblePathsModal", street_names)
+  })
 
-    shiny::observe({
-      shiny::updateSelectInput(session = session, inputId = "possiblePathsId", choices = street_names)
-    })
-
-    shiny::observeEvent(input$showMap, {
+  shiny::observeEvent(input$showMap, {
       street_ids <- c()
       splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
       splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1)
 
       for (street in splitTokens[[1]]) {
-        street_ids <- append(x = street_ids, values = loadDataByStreetName(street)$street_id)
+        street_ids <- append(x = street_ids, values = loadDataStreetsByStreetName(street)$street_id)
       }
 
       curves <- openxlsx::readWorkbook(xlsxFile = "curves.xlsx")
@@ -109,8 +108,8 @@ shiny::shinyServer(function(input, output, session) {
         mapData <- leaflet::leaflet()
         mapData <- leaflet::addTiles(mapData)
         mapData <- leaflet::clearShapes(mapData)
-        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataByStreetName(input$locationSearchId)$longitude, lat = loadDataByStreetName(input$locationSearchId)$latitude, popup = input$locationSearchId)
-        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataByStreetName(input$destinationSearchId)$longitude, lat = loadDataByStreetName(input$destinationSearchId)$latitude, popup = input$destinationSearchId)
+        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$locationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$locationSearchId)$latitude, popup = input$locationSearchId)
+        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$destinationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$destinationSearchId)$latitude, popup = input$destinationSearchId)
 
         for (i in 1:nrow(curves)) {
           for (j in 1:length(street_ids)) {
@@ -135,8 +134,9 @@ shiny::shinyServer(function(input, output, session) {
 
         mapData
       })
+
+      shiny::removeModal(session = getDefaultReactiveDomain())
     })
-  })
 
   shiny::observeEvent(input$importExcelFactorsId, {
     inFile <- input$excelFileUploadId
@@ -158,17 +158,232 @@ shiny::shinyServer(function(input, output, session) {
       }, value = 0, message = "Progessing: ")
     }
 
-    output$factors <- DT::renderDataTable({
-      loadDataFactors(input$routeName)
+    output$factors <- DT::renderDataTable(expr = {
+      loadDataFactorsByStreetId(input$routeName)
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
   })
 
   shiny::observeEvent(input$clearAllDataId, {
     shiny::callModule(module = deleteDataFactors, id = "deleteDataFactors", "factors")
     output$factors <- DT::renderDataTable({
-      loadDataFactors(input$routeName)
+      loadDataFactorsByStreetId(input$routeName)
     }, options = list(lengthMenu = c(5, 30, 50), pageLength = 5))
   })
+
+  shiny::observeEvent(input$visualPossiblePathsId, {
+    if (is.null(dfsEnv$allPaths)) {
+      shiny::callModule(module = noPossiblePathsModal, id = "noPossiblePathsModal")
+    } else {
+      street_names <- c()
+      for (i in 1:length(dfsEnv$allPaths)) {
+        streets <- ""
+        for (id in dfsEnv$allPaths[[i]]) {
+          streets <- paste(streets, values = loadDataStreetsByStreetId(id)$street_name, sep = " ==>> ")
+        }
+        street_names <- append(x = street_names, values = streets)
+      }
+      shiny::callModule(module = thereIsAPossiblePathsModal, id = "thereIsAPossiblePathsModal", street_names)
+
+    }
+  })
+
+  shiny::observeEvent(input$predictEfficientPathId, {
+    if (is.null(dfsEnv$allPaths)) {
+      shiny::callModule(module = noPossiblePathsModal, id = "noPossiblePathsModal")
+    } else {
+      # print(dfsEnv$allPaths)
+      currentDate <- strsplit(x = as.character(Sys.Date()), split = "-")
+      currentMonth <- currentDate[[1]][2]
+      currentDay <- currentDate[[1]][3]
+
+      PathsToPredict <- list()
+      trainingFactors <- data.frame()
+      for (path in dfsEnv$allPaths) {
+        for (id in path) {
+          trainingFactors <- rbind(trainingFactors, loadDataFactorsByStreetIdMonthDay(id, as.numeric(currentMonth), as.numeric(currentDay)))
+        }
+
+        trainingFactorsMatrix <- as.matrix(x = trainingFactors)
+
+        trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 0)
+        colnames(trainingFactorsMatrix)[7] <- "binary"
+
+        # PathsToPredict <- list(PathsToPredict, trainingFactorsMatrix)
+        lastPathsToPredict <- (base::length(PathsToPredict) + 1)
+
+        PathsToPredict[[lastPathsToPredict]] <- trainingFactorsMatrix
+      }
+
+      newList <- list()
+      for (i in 1:length(PathsToPredict)) {
+        nn1 <- neuralnet::neuralnet(formula = binary~day+month+vehicles+lanes+zones+events,
+          data = PathsToPredict[[i]], hidden = 2, learningrate = 0.01,
+          algorithm = "backprop", err.fct = "ce", linear.output = FALSE)
+        lastnewList <- (base::length(newList) + 1)
+        # pred <- neuralnet::prediction(x = nn1)
+        # print(pred)
+        newList[[lastnewList]] <- nn1
+      }
+      # print(newList[[1]]$net.result[[1]])
+      # print(sum(newList[[1]]$net.result[[1]]))
+      max <- 0.000000000000
+      index <- 0
+      for (i in 1:length(newList)) {
+        nnResult <- sum(newList[[i]]$net.result[[1]])
+        print(sum(newList[[i]]$net.result[[1]]))
+        if (nnResult > max) {
+          max <- nnResult
+          index <- i
+        }
+      }
+
+      print(index)
+
+      streets <- ""
+      street_names <- c()
+      for (id in dfsEnv$allPaths[[index]]) {
+        streets <- paste(streets, values = loadDataStreetsByStreetId(id)$street_name, sep = " ==>> ")
+      }
+      street_names <- append(x = street_names, values = streets)
+
+      output$text1 <- renderText({
+        street_names
+      })
+
+      shiny::callModule(module = efficientPathModal, id = "efficientPathModal")
+
+
+
+
+    }
+  })
+
+  shiny::observeEvent(input$showPlot, {
+    street_ids <- c()
+    splitTokens <- strsplit(x = input$plotPossiblePathId, split = " ==>> ")
+    splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1)
+    sampleFactors <- data.frame()
+    for (street in splitTokens[[1]]) {
+      street_ids <- append(x = street_ids, values = loadDataStreetsByStreetName(street)$street_id)
+      sampleFactors <- rbind(sampleFactors, loadDataFactorsByStreetId(street))
+    }
+
+    currentDate <- strsplit(x = as.character(Sys.Date()), split = "-")
+    currentMonth <- currentDate[[1]][2]
+    currentDay <- currentDate[[1]][3]
+
+    trainingFactors <- data.frame()
+    for (id in street_ids) {
+      trainingFactors <- rbind(trainingFactors, loadDataFactorsByStreetIdMonthDay(id, as.numeric(currentMonth), as.numeric(currentDay)))
+    }
+    sampleFactorsMatrix <- as.matrix(x = sampleFactors)
+    trainingFactorsMatrix <- as.matrix(x = trainingFactors)
+
+    # sa SOM.....
+    # walaLang <- matrix(c(363, 1, 29, 12, 36210, 3, 1, 0), nrow=2, ncol=1)
+    # lastNalangNi <- kohonen::som(data = sampleFactorsMatrix, grid = class::somgrid(xdim = 20, ydim = 20, topo = "rectangular"))
+    # output$somId <- shiny::renderPlot(expr = {
+    #   # graphics::plot(lastNalangNi, type = "changes", main = "Street Factors")
+    #   graphics::plot(lastNalangNi, type = "codes", main = "Street Factors")
+    # })
+    # print("data - \n")
+    # print(lastNalangNi$data)
+    # print("grid - \n")
+    # print(lastNalangNi$grid)
+    # print("codes - \n")
+    # print(lastNalangNi$codes)
+    # print("changes - \n")
+    # print(lastNalangNi$changes)
+    # print("unit.classif - \n")
+    # print(lastNalangNi$unit.classif)
+    # print("distances - \n")
+    # print(lastNalangNi$distances)
+    # print("toroidal - \n")
+    # print(lastNalangNi$toroidal)
+    # print("method - \n")
+    # print(lastNalangNi$method)
+    # print(summary(lastNalangNi))
+    #
+    # shiny::removeModal(session = getDefaultReactiveDomain())
+    # print(trainingFactorsMatrix)
+    # trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 1)
+    # colnames(trainingFactorsMatrix)[7] <- "binary"
+    # print(dim(trainingFactorsMatrix))
+    # print(trainingFactorsMatrix)
+    # trainingFactorsMatrix[, 7] <- 1
+    # trainingFactorsMatrix[trainingFactorsMatrix[, 4] < 3, 7] <- -1
+    # print(trainingFactorsMatrix)
+
+    # sa Perceptron...
+    # x <- trainingFactorsMatrix
+    # y <- trainingFactorsMatrix[, 7]
+    # err <- perceptron(x, y, 1, nrow(trainingFactorsMatrix))
+
+    # output$somId <- shiny::renderPlot(expr = {
+    #   graphics::plot(nrow(trainingFactorsMatrix), err, type="l", lwd=2, col="red", xlab="epoch #", ylab="errors")
+    #   graphics::title("Errors vs epoch - learning rate eta = 1")
+    # })
+    print(trainingFactorsMatrix)
+    trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 0)
+    colnames(trainingFactorsMatrix)[7] <- "binary"
+    nn <- neuralnet::neuralnet(formula = binary~day+month+vehicles+lanes+zones+events,
+      data = trainingFactorsMatrix, hidden = 2, learningrate = 0.01,
+      algorithm = "backprop", err.fct = "ce", linear.output = FALSE)
+    print(trainingFactorsMatrix)
+    print(nn)
+    plot(nn)
+    # output$somId <- shiny::renderPlot(expr = {
+    #   plot(nn)
+    #   par(mfrow=c(2,2))
+    #   plot(nn)
+    #   dev.off()
+    # })
+    output$plotVehicles <- shiny::renderPlot(expr = {
+      neuralnet::gwplot(nn, selected.covariate="vehicles")
+    })
+
+    output$plotLanes <- shiny::renderPlot(expr = {
+      neuralnet::gwplot(nn, selected.covariate="lanes")
+    })
+
+    output$plotZones <- shiny::renderPlot(expr = {
+      neuralnet::gwplot(nn, selected.covariate="zones")
+    })
+
+    output$plotEvents <- shiny::renderPlot(expr = {
+      neuralnet::gwplot(nn, selected.covariate="events")
+    })
+    #
+    # print(nn$weights)
+    # print(nn$result.matrix)
+    #
+    # print(nn$covariate)
+    # print(trainingFactorsMatrix$case)
+
+    shiny::removeModal(session = getDefaultReactiveDomain())
+  })
+
+
+
+  # output$somId <- shiny::renderPlot(expr = {
+  #   listOfFactors <- data.frame()
+  #   currentDate <- strsplit(x = as.character(Sys.Date()), split = "-")
+  #   currentMonth <- currentDate[[1]][2]
+  #   currentDay <- currentDate[[1]][3]
+  #   for (i in 1:length(dfsEnv$allPaths)) {
+  #     for (id in dfsEnv$allPaths[[i]]) {
+  #       listOfFactors <- rbind(listOfFactors, loadDataFactorsByStreetIdMonthDay(id, as.numeric(currentMonth), as.numeric(currentDay)))
+  #     }
+  #   }
+  #
+  #   # convert all road data - column vehicles into int from double
+  #   print(listOfFactors)
+  #   dataNaniSaFactors <- as.matrix(x = listOfFactors)
+  #   # print(loadDataFactors())
+  #   # dataNaniSaFactors <- as.matrix(x = loadDataFactors())
+  #   lastNalangNi <- kohonen::som(data = dataNaniSaFactors, grid = somgrid(xdim = 3, ydim = 2, topo = "rectangular"))
+  #   graphics::plot(lastNalangNi, main = "Street Factors")
+  # })
 })
 
 #' Retrieve data from streets from MySQL.
@@ -190,6 +405,16 @@ loadDataEdges <- function() {
   data
 }
 
+#' Retrieve data from streets from MySQL.
+#'
+#' @param tableEdges table name for edges.
+#' @export
+# load data from streets
+loadDataFactors <- function() {
+  data <- shiny::callModule(module = loadData, id = "loadData", "factors")
+  data
+}
+
 #' Retrieve data from streets with street_id from MySQL.
 #'
 #' @param name name of the street.
@@ -197,7 +422,7 @@ loadDataEdges <- function() {
 #' @param columnName column name for streets.
 #' @export
 # load data from streets
-loadDataByStreetId <- function(value) {
+loadDataStreetsByStreetId <- function(value) {
   data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "streets", "street_id", value)
   data
 }
@@ -208,19 +433,31 @@ loadDataByStreetId <- function(value) {
 #' @param tableStreets table name for streets.
 #' @export
 # load data from streets
-loadDataByStreetName <- function(value) {
+loadDataStreetsByStreetName <- function(value) {
   data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "streets", "street_name", value)
   data
 }
 
-#' Retrieve data from factors with given id for route in database.
+#' Retrieve data from factors with given street id for street in database.
 #'
 #' @param tableFactors table name for factors.
-#' @param id route id from saving factors.
-#' loadDataFactors(id)
-loadDataFactors <- function(name) {
-  value <- loadDataByStreetName(name)$street_id
+#' @param id street id from saving factors.
+#' loadDataFactorsByStreetId(id)
+loadDataFactorsByStreetId <- function(name) {
+  value <- loadDataStreetsByStreetName(name)$street_id
   data <- shiny::callModule(module = loadDataWhereCond, id = "loadDataWhereCond", "factors", "street_id", value)
+  data
+}
+
+#' Retrieve data from factors with given street id, month, day in database.
+#'
+#' @param tableFactors table name for factors.
+#' @param id street id from saving factors.
+#' @param month month of factors.
+#' @param day day of factors
+#' loadDataFactorsByStreetIdMonthDay(id, month, day)
+loadDataFactorsByStreetIdMonthDay <- function(id, month, day) {
+  data <- shiny::callModule(module = loadDataFactorsWhereStreetIdMonthDay, id = "loadDataFactorsWhereStreetIdMonthDay", "factors", "street_id", "month", "day", id, month, day)
   data
 }
 
@@ -260,4 +497,60 @@ dfs <- function (loc, des) {
       dfsEnv$path <- utils::head(dfsEnv$path, -1)
     }
   }
+}
+
+#' write function that takes in the data frame, learning rate - eta,
+#' and number of epochs - n.iter and updates the weight factor.
+#' At this stage, I am only conserned with the final weight and
+#' the number of epochs required for the weight to converge
+#'
+#' @param x is data set.
+#' @param y is binary labels.
+#' @param eta is learning rate.
+#' @param niter is number of iterations(epoch).
+#'
+#' @export
+#' perceptron(x, y, eta, niter)
+perceptron <- function(x, y, eta, niter) {
+
+  # initialize weight vector
+  weight <- rep(0, dim(x)[2] + 1)
+  errors <- rep(0, niter)
+
+
+  # loop over number of epochs niter
+  for (jj in 1:niter) {
+
+    # loop through training data set
+    for (ii in 1:length(y)) {
+
+      # Predict binary label using Heaviside activation
+      # function
+      z <- sum(weight[2:length(weight)] *
+                 as.numeric(x[ii, ])) + weight[1]
+      if(z < 0) {
+        ypred <- -1
+      } else {
+        ypred <- 1
+      }
+
+      # Change weight - the formula doesn't do anything
+      # if the predicted value is correct
+      weightdiff <- eta * (y[ii] - ypred) *
+        c(1, as.numeric(x[ii, ]))
+      weight <- weight + weightdiff
+
+      # Update error function
+      if ((y[ii] - ypred) != 0.0) {
+        errors[jj] <- errors[jj] + 1
+      }
+
+    }
+  }
+
+  # weight to decide between the two species
+  # print(weight)
+  # return(errors)
+  print(errors)
+  return(weight)
 }

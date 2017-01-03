@@ -1,0 +1,32 @@
+%	Date	Event
+0.1	1 Jan	New Year's Day (at home)
+
+0.8	6-15 Jan, Sinulog Novena Mass (santo nino)
+0.9	16 Jan	Sinulog Grand parade (streets) sinulog route
+
+0.5	3 Feb	Chinese Lunar New Year's Day (at home)
+0.5	16 Feb	Maulid un-Nabi
+0.5	28 Feb	People Power Anniversary
+0.5	9 Apr	The Day of Valor
+0.6	21 Apr	Maundy Thursday
+0.6	22 Apr	Good Friday 
+0.6	23 Apr	Holy Saturday (pray on simala, talavera)
+0.6	24 Apr	Easter Sunday (beach)
+0.7	2 May	Labor Day (mall or home)
+0.7	12 Jun	Independence Day (mall or home)
+0.7	20 Jun	150th Birthday of Dr. Jose P. Rizal
+0.5	29 Jun	Lailatul Isra Wal Mi Raj
+ 	 	
+0.7	22 Aug	Ninoy Aquino Day (mall or home)
+0.7	28 Aug	National Heroes Day (mall or home)
+0.7	29 Aug	National Heroes Day holiday (mall or home)
+0.6	1 Sep	Eidul-Fitar (mall or home)
+0.8	1 Nov	All Saints' Day (cementerio)
+0.7	2 Nov	All Souls' Day (cementerio)
+0.5	7 Nov	Id-ul-Adha (Feast of the Sacrifice)
+0.5	27 Nov	Amun Jadid 
+0.7	30 Nov	Bonifacio Day (mall or home)
+0.1	24 Dec	Christmas Eve (at home)
+0.1	25 Dec	Christmas Day (at home)
+0.2	30 Dec	Rizal Day (at home)
+0.1	31 Dec	New Year's Eve (at home)

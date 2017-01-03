@@ -57,7 +57,7 @@ createTableEdges()
 # Create table factors.
 createTableFactors<- function() {
   db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
-  query <- sprintf("CREATE TABLE %s.factors (factors_id INT AUTO_INCREMENT PRIMARY KEY, street_id INT, time INT, day INT, vehicles DOUBLE, lanes INT, zones INT, events INT, FOREIGN KEY (street_id) REFERENCES streets(street_id));", databaseName)
+  query <- sprintf("CREATE TABLE %s.factors (factors_id INT AUTO_INCREMENT PRIMARY KEY, street_id INT, day INT, month INT, vehicles INT, lanes INT, zones INT, events INT, FOREIGN KEY (street_id) REFERENCES streets(street_id));", databaseName)
   DBI::dbGetQuery(db, query)
   RMySQL::dbDisconnect(db)
 }
@@ -95,7 +95,7 @@ insertEdges()
 
 # Inserting data in table factors
 insertEdges <- function() {
-  factors <- openxlsx::readWorkbook(xlsxFile = "factors - dummy.xlsx")
+  factors <- openxlsx::readWorkbook(xlsxFile = "edges.xlsx")
   db <- RMySQL::dbConnect(RMySQL::MySQL(), dbname = databaseName, host = options()$mysql$host, port = options()$mysql$port, user = options()$mysql$user, password = options()$mysql$password)
   for (i in 1:nrow(factors)) {
     query <- sprintf("INSERT INTO navifactors.factors (start_vertex, end_vertex)
