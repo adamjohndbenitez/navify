@@ -94,46 +94,54 @@ shiny::shinyServer(function(input, output, session) {
   })
 
   shiny::observeEvent(input$showMap, {
-      street_ids <- c()
-      splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
-      splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1)
+    street_ids <- c()
+    splitTokens <- strsplit(x = input$possiblePathsId, split = " ==>> ")
+    splitTokens[[1]] <- tail(x = splitTokens[[1]], n = -1)
 
-      for (street in splitTokens[[1]]) {
-        street_ids <- append(x = street_ids, values = loadDataStreetsByStreetName(street)$street_id)
-      }
+    for (street in splitTokens[[1]]) {
+      street_ids <- append(x = street_ids, values = loadDataStreetsByStreetName(street)$street_id)
+    }
 
-      curves <- openxlsx::readWorkbook(xlsxFile = "curves.xlsx")
+    curves <- openxlsx::readWorkbook(xlsxFile = "curves.xlsx")
 
-      output$DFSmap <- leaflet::renderLeaflet({
-        mapData <- leaflet::leaflet()
-        mapData <- leaflet::addTiles(mapData)
-        mapData <- leaflet::clearShapes(mapData)
-        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$locationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$locationSearchId)$latitude, popup = input$locationSearchId)
-        mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$destinationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$destinationSearchId)$latitude, popup = input$destinationSearchId)
+    output$DFSmap <- leaflet::renderLeaflet({
+      mapData <- leaflet::leaflet()
+      mapData <- leaflet::addTiles(mapData)
+      mapData <- leaflet::clearShapes(mapData)
+      mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$locationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$locationSearchId)$latitude, popup = input$locationSearchId)
+      mapData <- leaflet::addMarkers(map = mapData, lng = loadDataStreetsByStreetName(input$destinationSearchId)$longitude, lat = loadDataStreetsByStreetName(input$destinationSearchId)$latitude, popup = input$destinationSearchId)
 
-        for (i in 1:nrow(curves)) {
-          for (j in 1:length(street_ids)) {
-            if (!gtools::invalid(street_ids[j + 1])) {
-              if (((curves[i, 2] == street_ids[j]) & (curves[i, 3] == street_ids[j + 1])) | ((curves[i, 2] == street_ids[j + 1]) & (curves[i, 3] == street_ids[j]))) {
-                latlons <- strsplit(x = curves[i, 4], split = ":")
-                unlist_latlons <- unlist(latlons)
-                latlon <- strsplit(x = unlist_latlons, split = ",")
-                withProgress(expr = {
-                  for (k in 1:length(latlon)) {
-                    incProgress(amount = 1/length(latlon))
-                    Sys.sleep(0.25)
-                    if (!gtools::invalid(latlon[k + 1])) {
-                      mapData <- leaflet::addPolylines(map = mapData, lng = c(round(as.double(latlon[[k]][2]), digits = 6), round(as.double(latlon[[k + 1]][2]), digits = 6)), lat = c(round(as.double(latlon[[k]][1]), digits = 6), round(as.double(latlon[[k + 1]][1]), digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = input$possiblePathsId)
-                    }
+      for (i in 1:nrow(curves)) {
+        for (j in 1:length(street_ids)) {
+          if (!gtools::invalid(street_ids[j + 1])) {
+            if (((curves[i, 2] == street_ids[j]) & (curves[i, 3] == street_ids[j + 1])) | ((curves[i, 2] == street_ids[j + 1]) & (curves[i, 3] == street_ids[j]))) {
+              latlons <- strsplit(x = curves[i, 4], split = ":")
+              unlist_latlons <- unlist(latlons)
+              latlon <- strsplit(x = unlist_latlons, split = ",")
+              withProgress(expr = {
+                for (k in 1:length(latlon)) {
+                  incProgress(amount = 1/length(latlon))
+                  Sys.sleep(0.25)
+                  if (!gtools::invalid(latlon[k + 1])) {
+                    mapData <- leaflet::addPolylines(map = mapData, lng = c(round(as.double(latlon[[k]][2]), digits = 6), round(as.double(latlon[[k + 1]][2]), digits = 6)), lat = c(round(as.double(latlon[[k]][1]), digits = 6), round(as.double(latlon[[k + 1]][1]), digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = input$possiblePathsId)
                   }
-                }, value = 0, message = "Rendering Paths: ", detail = "Wait for a while...")
-              }
+                }
+              }, value = 0, message = "Rendering Paths: ", detail = "Wait for a while...")
             }
           }
         }
+      }
 
-        mapData
+      output$PredictionTab <- shinydashboard::renderMenu({
+        shinydashboard::sidebarMenu(
+          shinydashboard::menuItem(text = "Prediction", icon = shiny::icon(name = "eye", class = "fa-1x", lib = "font-awesome"),
+            shiny::actionButton(inputId = "predictEfficientPathId", label = "Efficient Path", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
+          )
+        )
       })
+
+      mapData
+    })
 
       shiny::removeModal(session = getDefaultReactiveDomain())
     })
@@ -251,10 +259,6 @@ shiny::shinyServer(function(input, output, session) {
       })
 
       shiny::callModule(module = efficientPathModal, id = "efficientPathModal")
-
-
-
-
     }
   })
 
@@ -279,50 +283,7 @@ shiny::shinyServer(function(input, output, session) {
     sampleFactorsMatrix <- as.matrix(x = sampleFactors)
     trainingFactorsMatrix <- as.matrix(x = trainingFactors)
 
-    # sa SOM.....
-    # walaLang <- matrix(c(363, 1, 29, 12, 36210, 3, 1, 0), nrow=2, ncol=1)
-    # lastNalangNi <- kohonen::som(data = sampleFactorsMatrix, grid = class::somgrid(xdim = 20, ydim = 20, topo = "rectangular"))
-    # output$somId <- shiny::renderPlot(expr = {
-    #   # graphics::plot(lastNalangNi, type = "changes", main = "Street Factors")
-    #   graphics::plot(lastNalangNi, type = "codes", main = "Street Factors")
-    # })
-    # print("data - \n")
-    # print(lastNalangNi$data)
-    # print("grid - \n")
-    # print(lastNalangNi$grid)
-    # print("codes - \n")
-    # print(lastNalangNi$codes)
-    # print("changes - \n")
-    # print(lastNalangNi$changes)
-    # print("unit.classif - \n")
-    # print(lastNalangNi$unit.classif)
-    # print("distances - \n")
-    # print(lastNalangNi$distances)
-    # print("toroidal - \n")
-    # print(lastNalangNi$toroidal)
-    # print("method - \n")
-    # print(lastNalangNi$method)
-    # print(summary(lastNalangNi))
-    #
-    # shiny::removeModal(session = getDefaultReactiveDomain())
-    # print(trainingFactorsMatrix)
-    # trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 1)
-    # colnames(trainingFactorsMatrix)[7] <- "binary"
-    # print(dim(trainingFactorsMatrix))
-    # print(trainingFactorsMatrix)
-    # trainingFactorsMatrix[, 7] <- 1
-    # trainingFactorsMatrix[trainingFactorsMatrix[, 4] < 3, 7] <- -1
-    # print(trainingFactorsMatrix)
 
-    # sa Perceptron...
-    # x <- trainingFactorsMatrix
-    # y <- trainingFactorsMatrix[, 7]
-    # err <- perceptron(x, y, 1, nrow(trainingFactorsMatrix))
-
-    # output$somId <- shiny::renderPlot(expr = {
-    #   graphics::plot(nrow(trainingFactorsMatrix), err, type="l", lwd=2, col="red", xlab="epoch #", ylab="errors")
-    #   graphics::title("Errors vs epoch - learning rate eta = 1")
-    # })
     print(trainingFactorsMatrix)
     trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 0)
     colnames(trainingFactorsMatrix)[7] <- "binary"
@@ -332,12 +293,7 @@ shiny::shinyServer(function(input, output, session) {
     print(trainingFactorsMatrix)
     print(nn)
     plot(nn)
-    # output$somId <- shiny::renderPlot(expr = {
-    #   plot(nn)
-    #   par(mfrow=c(2,2))
-    #   plot(nn)
-    #   dev.off()
-    # })
+
     output$plotVehicles <- shiny::renderPlot(expr = {
       neuralnet::gwplot(nn, selected.covariate="vehicles")
     })
@@ -353,37 +309,10 @@ shiny::shinyServer(function(input, output, session) {
     output$plotEvents <- shiny::renderPlot(expr = {
       neuralnet::gwplot(nn, selected.covariate="events")
     })
-    #
-    # print(nn$weights)
-    # print(nn$result.matrix)
-    #
-    # print(nn$covariate)
-    # print(trainingFactorsMatrix$case)
 
     shiny::removeModal(session = getDefaultReactiveDomain())
   })
 
-
-
-  # output$somId <- shiny::renderPlot(expr = {
-  #   listOfFactors <- data.frame()
-  #   currentDate <- strsplit(x = as.character(Sys.Date()), split = "-")
-  #   currentMonth <- currentDate[[1]][2]
-  #   currentDay <- currentDate[[1]][3]
-  #   for (i in 1:length(dfsEnv$allPaths)) {
-  #     for (id in dfsEnv$allPaths[[i]]) {
-  #       listOfFactors <- rbind(listOfFactors, loadDataFactorsByStreetIdMonthDay(id, as.numeric(currentMonth), as.numeric(currentDay)))
-  #     }
-  #   }
-  #
-  #   # convert all road data - column vehicles into int from double
-  #   print(listOfFactors)
-  #   dataNaniSaFactors <- as.matrix(x = listOfFactors)
-  #   # print(loadDataFactors())
-  #   # dataNaniSaFactors <- as.matrix(x = loadDataFactors())
-  #   lastNalangNi <- kohonen::som(data = dataNaniSaFactors, grid = somgrid(xdim = 3, ydim = 2, topo = "rectangular"))
-  #   graphics::plot(lastNalangNi, main = "Street Factors")
-  # })
 })
 
 #' Retrieve data from streets from MySQL.

@@ -1,20 +1,21 @@
 shiny::shinyUI(
   shiny::fluidPage(
     shinyjs::useShinyjs(),
-    shinydashboard::dashboardPage(skin = "blue",
+    shinydashboard::dashboardPage(skin = "green",
       header = shinydashboard::dashboardHeader(title = "Navify"),
       sidebar = shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(
           shinydashboard::menuItem(text = "Possible Paths", tabName = "dfsTab", icon = shiny::icon(name = "map-o", class = "fa-1x", lib = "font-awesome"), badgeLabel = "new", badgeColor = "red"),
           shinydashboard::menuItem(text = "Data Management", tabName = "factorsTab", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome")),
           shinydashboard::menuItem(text = "Traffic Analysis", tabName = "analysisTab", icon = shiny::icon(name = "pie-chart", class = "fa-1x", lib = "font-awesome"))
-        )
+        ),
+        shinydashboard::sidebarMenuOutput(outputId = "PredictionTab")
       ),
       body = shinydashboard::dashboardBody(
         shinydashboard::tabItems(
           shinydashboard::tabItem(tabName = "dfsTab",
             shiny::fluidRow(
-              shinydashboard::box(title = "Select location & destination", status = "primary", solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
+              shinydashboard::box(title = "Select location & destination", status = "success", solidHeader = TRUE, width = 12, collapsible = TRUE, collapsed = TRUE,
                 shiny::column(width = 12,
                   shiny::column(width = 5,
                     shiny::selectInput(inputId = "locationSearchId", label = "Select Location", choices = "")
@@ -31,7 +32,7 @@ shiny::shinyUI(
               )
             ),
             shiny::fluidRow(
-              shinydashboard::box(width = 12,
+              shinydashboard::box(width = 12, status = "success",
                 leaflet::leafletOutput(outputId = "DFSmap", width = "100%", height = "400px")
               )
             )
@@ -81,7 +82,7 @@ shiny::shinyUI(
               )
             ),
             shiny::fluidRow(
-              shinydashboard::box(title = "Data Factors", status = "warning", width = 12,
+              shinydashboard::box(title = "Data Factors", status = "success", width = 12,
                 shiny::column(width = 12, DT::dataTableOutput("factors", width = 1000))
               )
             )
@@ -94,12 +95,12 @@ shiny::shinyUI(
                     shiny::column(width = 6,
                       shiny::br(),
                       shiny::helpText(
-                        shiny::em("Visualize Path: ")
+                        shiny::helpText("Click \"Visualize Data\" button to plot data on graph: ")
                       )
                     ),
                     shiny::column(width = 6,
                       shiny::wellPanel(
-                        shiny::actionButton(inputId = "visualPossiblePathsId", label = "Show Graphs", icon = shiny::icon(name = "bar-chart", class = "fa-1x", lib = "font-awesome"))
+                        shiny::actionButton(inputId = "visualPossiblePathsId", label = "Visualize Data", icon = shiny::icon(name = "bar-chart", class = "fa-1x", lib = "font-awesome"))
                       )
                     )
                   )
@@ -111,12 +112,12 @@ shiny::shinyUI(
                       shiny::helpText(
                         shiny::em("Predicted Efficient Path: ")
                       )
-                    ),
-                    shiny::column(width = 6,
-                      shiny::wellPanel(
-                        shiny::actionButton(inputId = "predictEfficientPathId", label = "Predict", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
-                      )
                     )
+                    # shiny::column(width = 6,
+                    #   shiny::wellPanel(
+                    #     shiny::actionButton(inputId = "predictEfficientPathId", label = "Predict", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
+                    #   )
+                    # )
                   )
                 )
               )

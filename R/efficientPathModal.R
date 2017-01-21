@@ -1,6 +1,6 @@
 efficientPathModal <- function(input, output, session, street) {
   shiny::showModal(
-    shiny::modalDialog(title = "Possible Paths",
+    shiny::modalDialog(title = "Efficient Path",
       footer = shiny::tagList(
         shiny::modalButton("Close")
       ), size = "l", easyClose = FALSE,
