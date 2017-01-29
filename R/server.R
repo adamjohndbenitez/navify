@@ -126,7 +126,7 @@ shiny::shinyServer(function(input, output, session) {
                     mapData <- leaflet::addPolylines(map = mapData, lng = c(round(as.double(latlon[[k]][2]), digits = 6), round(as.double(latlon[[k + 1]][2]), digits = 6)), lat = c(round(as.double(latlon[[k]][1]), digits = 6), round(as.double(latlon[[k + 1]][1]), digits = 6)), stroke = TRUE, color = "black", weight = 5, opacity = 0.7, fill = FALSE, fillColor = "black", fillOpacity = 0.5, dashArray = NULL, smoothFactor = 1, noClip = TRUE, popup = input$possiblePathsId)
                   }
                 }
-              }, value = 0, message = "Rendering Paths: ", detail = "Wait for a while...")
+              }, style = "old", value = 0, message = "Rendering Paths: ", detail = "Wait for a while...")
             }
           }
         }
@@ -135,7 +135,7 @@ shiny::shinyServer(function(input, output, session) {
       output$PredictionTab <- shinydashboard::renderMenu({
         shinydashboard::sidebarMenu(
           shinydashboard::menuItem(text = "Prediction", icon = shiny::icon(name = "eye", class = "fa-1x", lib = "font-awesome"),
-            shiny::actionButton(inputId = "predictEfficientPathId", label = "Efficient Path", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
+            shiny::actionButton(inputId = "predictEfficientPathId", label = "Efficient Path", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"), width = "100%")
           )
         )
       })
@@ -163,7 +163,7 @@ shiny::shinyServer(function(input, output, session) {
           dataFactors <- openxlsx::readWorkbook(xlsxFile = inFile$datapath, sheet = s)
           shiny::callModule(module = saveImportedFactors, id = "saveImportedFactors", dataFactors, "factors")
         }
-      }, value = 0, message = "Progessing: ")
+      }, style = "old", value = 0, message = "Progessing: ")
     }
 
     output$factors <- DT::renderDataTable(expr = {

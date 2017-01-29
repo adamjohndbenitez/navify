@@ -5,7 +5,7 @@ thereIsAPossiblePathsModal <- function(input, output, session, street_names) {
   shiny::showModal(
     shiny::modalDialog(title = "Possible Paths",
       footer = shiny::tagList(
-        shiny::actionButton(inputId = "showPlot", label = "Show in Map"),
+        shiny::actionButton(inputId = "showPlot", label = "Plot Data"),
         shiny::modalButton("Close")
       ), size = "l", easyClose = FALSE,
       shiny::fluidRow(

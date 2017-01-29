@@ -1,6 +1,4 @@
-shiny::shinyUI(
-  shiny::fluidPage(
-    shinyjs::useShinyjs(),
+
     shinydashboard::dashboardPage(skin = "green",
       header = shinydashboard::dashboardHeader(title = "Navify"),
       sidebar = shinydashboard::dashboardSidebar(
@@ -11,6 +9,7 @@ shiny::shinyUI(
         ),
         shinydashboard::sidebarMenuOutput(outputId = "PredictionTab")
       ),
+      shinyjs::useShinyjs(),
       body = shinydashboard::dashboardBody(
         shinydashboard::tabItems(
           shinydashboard::tabItem(tabName = "dfsTab",
@@ -148,5 +147,3 @@ shiny::shinyUI(
         )
       )
     )
-  )
-)
