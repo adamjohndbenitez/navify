@@ -103,32 +103,32 @@
                       )
                     )
                   )
-                ),
-                shiny::tabPanel(title = "Prediction Tab", value = "Predict", icon = shiny::icon(name = "eye", class = "fa-1x", lib = "font-awesome"),
-                  shiny::column(width = 12,
-                    shiny::column(width = 6,
-                      shiny::br(),
-                      shiny::helpText(
-                        shiny::em("Predicted Efficient Path: ")
-                      )
-                    )
-                    # shiny::column(width = 6,
-                    #   shiny::wellPanel(
-                    #     shiny::actionButton(inputId = "predictEfficientPathId", label = "Predict", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
-                    #   )
-                    # )
-                  )
                 )
+                # shiny::tabPanel(title = "Prediction Tab", value = "Predict", icon = shiny::icon(name = "eye", class = "fa-1x", lib = "font-awesome"),
+                #   shiny::column(width = 12,
+                #     shiny::column(width = 6,
+                #       shiny::br(),
+                #       shiny::helpText(
+                #         shiny::em("Predicted Efficient Path: ")
+                #       )
+                #     )
+                #     # shiny::column(width = 6,
+                #     #   shiny::wellPanel(
+                #     #     shiny::actionButton(inputId = "predictEfficientPathId", label = "Predict", icon = shiny::icon(name = "question-circle", class = "fa-1x", lib = "font-awesome"))
+                #     #   )
+                #     # )
+                #   )
+                # )
               )
             ),
             shiny::fluidRow(
               # shinydashboard::box(width = 12,
               #   shiny::plotOutput(outputId = "somId", width = "100%", height = "370px")
               # )
-              shinydashboard::box(
+              shinydashboard::box(title = "Vehicles Binary Data",
                 shiny::plotOutput(outputId = "plotVehicles")
               ),
-              shinydashboard::box(
+              shinydashboard::box(title = "Lanes Binary Data",
                 shiny::plotOutput(outputId = "plotLanes")
               )
             ),
@@ -136,10 +136,10 @@
               # shinydashboard::box(width = 12,
               #   shiny::plotOutput(outputId = "somId", width = "100%", height = "370px")
               # )
-              shinydashboard::box(
+              shinydashboard::box(title = "Zones Binary Data",
                 shiny::plotOutput(outputId = "plotZones")
               ),
-              shinydashboard::box(
+              shinydashboard::box(title = "Events Binary Data",
                 shiny::plotOutput(outputId = "plotEvents")
               )
             )

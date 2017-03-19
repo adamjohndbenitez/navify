@@ -199,7 +199,6 @@ shiny::shinyServer(function(input, output, session) {
     if (is.null(dfsEnv$allPaths)) {
       shiny::callModule(module = noPossiblePathsModal, id = "noPossiblePathsModal")
     } else {
-      # print(dfsEnv$allPaths)
       currentDate <- strsplit(x = as.character(Sys.Date()), split = "-")
       currentMonth <- currentDate[[1]][2]
       currentDay <- currentDate[[1]][3]
@@ -209,6 +208,14 @@ shiny::shinyServer(function(input, output, session) {
       for (path in dfsEnv$allPaths) {
         for (id in path) {
           trainingFactors <- rbind(trainingFactors, loadDataFactorsByStreetIdMonthDay(id, as.numeric(currentMonth), as.numeric(currentDay)))
+        }
+
+        for (i in 1:length(trainingFactors$lanes)) {
+          if (trainingFactors$lanes[i] == 3) {
+            trainingFactors$lanes[i] <- 1
+          } else if (trainingFactors$lanes[i] == 1) {
+            trainingFactors$lanes[i] <- 3
+          }
         }
 
         trainingFactorsMatrix <- as.matrix(x = trainingFactors)
@@ -226,7 +233,7 @@ shiny::shinyServer(function(input, output, session) {
       for (i in 1:length(PathsToPredict)) {
         nn1 <- neuralnet::neuralnet(formula = binary~day+month+vehicles+lanes+zones+events,
           data = PathsToPredict[[i]], hidden = 2, learningrate = 0.01,
-          algorithm = "backprop", err.fct = "ce", linear.output = FALSE)
+          algorithm = "backprop", err.fct = "sse", linear.output = FALSE)
         lastnewList <- (base::length(newList) + 1)
         # pred <- neuralnet::prediction(x = nn1)
         # print(pred)
@@ -238,14 +245,14 @@ shiny::shinyServer(function(input, output, session) {
       index <- 0
       for (i in 1:length(newList)) {
         nnResult <- sum(newList[[i]]$net.result[[1]])
-        print(sum(newList[[i]]$net.result[[1]]))
+        # print(sum(newList[[i]]$net.result[[1]]))
         if (nnResult > max) {
           max <- nnResult
           index <- i
         }
       }
 
-      print(index)
+      # print(index)
 
       streets <- ""
       street_names <- c()
@@ -284,14 +291,14 @@ shiny::shinyServer(function(input, output, session) {
     trainingFactorsMatrix <- as.matrix(x = trainingFactors)
 
 
-    print(trainingFactorsMatrix)
+    # print(trainingFactorsMatrix)
     trainingFactorsMatrix <- cbind(trainingFactorsMatrix, 0)
     colnames(trainingFactorsMatrix)[7] <- "binary"
     nn <- neuralnet::neuralnet(formula = binary~day+month+vehicles+lanes+zones+events,
       data = trainingFactorsMatrix, hidden = 2, learningrate = 0.01,
-      algorithm = "backprop", err.fct = "ce", linear.output = FALSE)
-    print(trainingFactorsMatrix)
-    print(nn)
+      algorithm = "backprop", err.fct = "sse", linear.output = FALSE)
+    # print(trainingFactorsMatrix)
+    # print(nn)
     plot(nn)
 
     output$plotVehicles <- shiny::renderPlot(expr = {
