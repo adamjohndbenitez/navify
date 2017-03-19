@@ -3,9 +3,9 @@
       header = shinydashboard::dashboardHeader(title = "Navify"),
       sidebar = shinydashboard::dashboardSidebar(
         shinydashboard::sidebarMenu(
-          shinydashboard::menuItem(text = "Possible Paths", tabName = "dfsTab", icon = shiny::icon(name = "map-o", class = "fa-1x", lib = "font-awesome"), badgeLabel = "new", badgeColor = "red"),
-          shinydashboard::menuItem(text = "Data Management", tabName = "factorsTab", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome")),
-          shinydashboard::menuItem(text = "Traffic Analysis", tabName = "analysisTab", icon = shiny::icon(name = "pie-chart", class = "fa-1x", lib = "font-awesome"))
+          shinydashboard::menuItem(text = "Possible Paths", tabName = "dfsTab", icon = shiny::icon(name = "map-o", class = "fa-1x", lib = "font-awesome"), badgeLabel = "map", badgeColor = "green"),
+          shinydashboard::menuItem(text = "Data Management", tabName = "factorsTab", icon = shiny::icon(name = "database", class = "fa-1x", lib = "font-awesome"), badgeLabel = "control", badgeColor = "blue"),
+          shinydashboard::menuItem(text = "Traffic Analysis", tabName = "analysisTab", icon = shiny::icon(name = "pie-chart", class = "fa-1x", lib = "font-awesome"), badgeLabel = "plot", badgeColor = "orange")
         ),
         shinydashboard::sidebarMenuOutput(outputId = "PredictionTab")
       ),
